@@ -4,6 +4,8 @@ import "./index.css";
 
 interface TileProps {
   pieceId: string;
+  i: number;
+  j: number;
 }
 
 const Tile: FC<TileProps> = (props) => {
@@ -16,13 +18,14 @@ const Tile: FC<TileProps> = (props) => {
 
 interface RowProps {
   row: string[];
+  i: number;
 }
 
 const Row: FC<RowProps> = (props) => {
   return (
     <div className="board-row">
       <tr>
-        {props.row.map(pieceId => <Tile pieceId={pieceId}/> )}
+        {props.row.map((pieceId, j) => <Tile pieceId={pieceId} i={props.i} j={j}/> )}
       </tr>
     </div>
   )
@@ -39,7 +42,7 @@ const Board: FC = () => {
     <div>
       <h1>Chess</h1>
       <div>
-        {curBoard.map(row => <Row row={row}/> )}
+        {curBoard.map((row, i) => <Row row={row} i={i}/> )}
       </div>
     </div>
   );
