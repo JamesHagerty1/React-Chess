@@ -30,8 +30,8 @@ const Tile: FC<TileProps> = (props) => {
 
 interface RowProps {
   row: string[];
-  i: number;
-  clickTile: Function; 
+  i: number; // pass down only
+  clickTile: Function; // pass down only
 }
 
 const Row: FC<RowProps> = (props) => {
@@ -44,8 +44,14 @@ const Row: FC<RowProps> = (props) => {
 
 const Board: FC = () => {
   const board = [
-    ["a", "b", "c", "*"],
-    ["d", "e", "f", "king-black"]
+    ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
+    ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
+    ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
 
   function clickTile(i: number, j: number): number {
