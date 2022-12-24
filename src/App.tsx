@@ -53,9 +53,9 @@ const Board: FC = () => {
           </div>
         )}
       </div>
-      <div className="board-layer">
+      <div className="svg-layer">
         <svg className="svg-box">
-          <line x1="100" y1="100" x2="400" y2="300" stroke="Coral" strokeWidth="8" strokeLinecap="round"></line>
+          <line className="svg-line" x1="100" y1="100" x2="400" y2="100" stroke="Coral" strokeWidth="8" strokeLinecap="round"></line>
         </svg>
       </div>
     </div>
