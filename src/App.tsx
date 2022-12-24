@@ -1,49 +1,28 @@
 import React, { FC, useState } from 'react';
 import "./index.css";
-import { isPropertySignature } from 'typescript';
-import { setUncaughtExceptionCaptureCallback } from 'process';
+
 
 interface TileProps {
-  pieceId: string;
-  i: number;
-  j: number;
+  board: string[][];
+  r: number;
+  c: number;
   clickTile: Function;
 }
 
 const Tile: FC<TileProps> = (props) => {
-  const [pieceId, setPieceId] = useState(props.pieceId);
-
   function handleClick() {
-    console.log("handleClick()");
-    let res: number = props.clickTile(props.i, props.j);
-    console.log(res);
-
-    setPieceId("ZZZ");
+    props.clickTile(props.r, props.c);
   }
 
   return (
     <button className="tile" onClick={() => handleClick()}>
-      {pieceId}
+      {props.board[props.r][props.c]}
     </button>
   )
 }
 
-interface RowProps {
-  row: string[];
-  i: number; // pass down only
-  clickTile: Function; // pass down only
-}
-
-const Row: FC<RowProps> = (props) => {
-  return (
-    <div className="board-row">
-      {props.row.map((pieceId, j) => <Tile pieceId={pieceId} i={props.i} j={j} clickTile={props.clickTile}/> )}
-    </div>
-  )
-}
-
 const Board: FC = () => {
-  const board = [
+  let board = [
     ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
     ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
     ["", "", "", "", "", "", "", ""],
@@ -53,17 +32,25 @@ const Board: FC = () => {
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
+  const [curBoard, setCurBoard] = useState(board);
+  const [val, setVal] = useState("start");
+  console.log("Hi!");
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
-    return 42;
+    let newBoard = curBoard.slice();
+    newBoard[i][j] = "X"
+    setCurBoard(newBoard);
+    return -1;
   }
+
+  // let row = curBoard[0].map((pieceId, i) => <Tile key={i.toString()} pieceId={pieceId} r={0} c={i} clickTile={clickTile}/> );
 
   return (
     <div>
       <h1>Chess</h1>
       <div>
-        {board.map((row, i) => <Row row={row} i={i} clickTile={clickTile}/> )}
+        <Tile board={curBoard} r={0} c={0} clickTile={clickTile} />
       </div>
     </div>
   );
