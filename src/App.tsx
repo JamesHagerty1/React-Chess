@@ -33,24 +33,25 @@ const Board: FC = () => {
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
   const [curBoard, setCurBoard] = useState(board);
-  const [val, setVal] = useState("start");
-  console.log("Hi!");
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
     let newBoard = curBoard.slice();
-    newBoard[i][j] = "X"
+    newBoard[i][j] = "X";
+    newBoard[0][0] = "X";
     setCurBoard(newBoard);
     return -1;
   }
-
-  // let row = curBoard[0].map((pieceId, i) => <Tile key={i.toString()} pieceId={pieceId} r={0} c={i} clickTile={clickTile}/> );
 
   return (
     <div>
       <h1>Chess</h1>
       <div>
-        <Tile board={curBoard} r={0} c={0} clickTile={clickTile} />
+        {board.map((row, r) =>
+          <div key={r.toString()} className="board-row">
+            {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} board={curBoard} r={r} c={c} clickTile={clickTile}/> )}
+          </div>
+        )}
       </div>
     </div>
   );
