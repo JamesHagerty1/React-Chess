@@ -3,7 +3,7 @@ import "./index.css";
 
 
 interface TileProps {
-  board: string[][];
+  piece: string;
   r: number;
   c: number;
   clickTile: Function;
@@ -16,13 +16,13 @@ const Tile: FC<TileProps> = (props) => {
 
   return (
     <button className="tile" onClick={() => handleClick()}>
-      {props.board[props.r][props.c]}
+      {props.piece}
     </button>
   )
 }
 
 const Board: FC = () => {
-  let board = [
+  let startBoard = [
     ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
     ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
     ["", "", "", "", "", "", "", ""],
@@ -32,7 +32,7 @@ const Board: FC = () => {
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
-  const [curBoard, setCurBoard] = useState(board);
+  const [curBoard, setCurBoard] = useState(startBoard);
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
@@ -47,9 +47,9 @@ const Board: FC = () => {
     <div>
       <h1>Chess</h1>
       <div>
-        {board.map((row, r) =>
+        {curBoard.map((row, r) =>
           <div key={r.toString()} className="board-row">
-            {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} board={curBoard} r={r} c={c} clickTile={clickTile}/> )}
+            {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={curBoard[r][c]} r={r} c={c} clickTile={clickTile}/>)}
           </div>
         )}
       </div>
