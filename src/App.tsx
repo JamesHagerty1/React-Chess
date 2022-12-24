@@ -46,12 +46,17 @@ const Board: FC = () => {
   return (
     <div>
       <h1>Chess</h1>
-      <div>
+      <div className="board-layer">
         {curBoard.map((row, r) =>
           <div key={r.toString()} className="board-row">
             {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={curBoard[r][c]} r={r} c={c} clickTile={clickTile}/>)}
           </div>
         )}
+      </div>
+      <div className="board-layer">
+        <svg className="svg-box">
+          <line x1="100" y1="100" x2="400" y2="300" stroke="Coral" strokeWidth="8" strokeLinecap="round"></line>
+        </svg>
       </div>
     </div>
   );

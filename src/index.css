@@ -1,20 +1,29 @@
 .tile {
-    background: #fff;
-    border: 1px solid #999;
-    float: left;
-    font-size: 12px;
-    font-weight: bold;
-    line-height: 34px;
-    height: 64px;
-    margin-right: -1px;
-    margin-top: -1px;
-    padding: 0;
-    text-align: center;
-    width: 64px;
+  background: #fff;
+  border: 1px solid #999;
+  float: left;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 64px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
+  text-align: center;
+  width: 64px;
 }
 
 .board-row:after {
   clear: both;
   content: "";
   display: table;
+}
+
+.board-layer {
+  position: absolute; /* Enables drawing SVG over board html*/
+}
+
+.svg-box {
+  overflow: visible; /* Prevent SVG from being cut part way */
+  pointer-events: none; /* Allow player to click board where SVG are overlayed */ 
 }
