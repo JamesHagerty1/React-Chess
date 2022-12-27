@@ -11,13 +11,17 @@ interface TileProps {
 
 const Tile: FC<TileProps> = (props) => {
   function handleClick() {
+    console.log("Tile handleClick");
     props.clickTile(props.r, props.c);
+
+    // NOW! get coords of me
+
   }
 
   return (
-    <button className="tile" onClick={() => handleClick()}>
+    <div className="board-tile" onClick={() => handleClick()}>
       {props.piece}
-    </button>
+    </div>
   )
 }
 
@@ -25,10 +29,10 @@ const Board: FC = () => {
   let startBoard = [
     ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
     ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
@@ -44,9 +48,8 @@ const Board: FC = () => {
   }
 
   return (
-    <div>
-      <h1>Chess</h1>
-      <div className="board-layer">
+    <div className="flex-container">
+      <div className="board">
         {curBoard.map((row, r) =>
           <div key={r.toString()} className="board-row">
             {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={curBoard[r][c]} r={r} c={c} clickTile={clickTile}/>)}
@@ -55,8 +58,11 @@ const Board: FC = () => {
       </div>
       <div className="svg-layer">
         <svg className="svg-box">
-          <line className="svg-line" x1="100" y1="100" x2="400" y2="100" stroke="Coral" strokeWidth="8" strokeLinecap="round"></line>
+          <line className="svg-line" x1="10" y1="10" x2="400" y2="400" stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
         </svg>
+      </div>
+      <div className="move-history">
+        <h1>Move History</h1>
       </div>
     </div>
   );
