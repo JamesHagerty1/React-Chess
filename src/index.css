@@ -32,7 +32,7 @@
 }
 
 .svg-layer {
-  outline: 1px solid red;
+  /* outline: 1px solid red; */
 
   width: 80vmin; /* Always overlays .board */
   height: 80vmin;
@@ -41,7 +41,7 @@
 }
 
 .svg-box {
-  outline: 1px solid blue;
+  /* outline: 1px solid blue; */
 
   overflow: visible; /* Prevent SVG from being cut part way */
   pointer-events: none; /* Allow player to click board where SVG are overlayed */ 

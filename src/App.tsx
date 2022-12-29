@@ -18,15 +18,10 @@ const Tile: FC<TileProps> = (props) => {
 
   const tileColor = ((props.r + props.c) % 2 == 0) ? "white" : "lavender";
 
-  const tileItem = (props.piece != "") ? 
-    <img className="board-tile-piece-img"
-    src={require(`./images/${props.piece}.png`)} /> :
-    <div></div>;
-
   return (
     <div className="board-tile" onClick={() => handleClick()}
     style={{"backgroundColor": tileColor}}>
-      {tileItem}
+      <img className="board-tile-piece-img" src={require(`./images/${props.piece}.png`)} />
     </div>
   )
 }
@@ -100,10 +95,10 @@ function App() {
   let startBoard = [
     ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
     ["pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd"],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],    // even empty square has its own image, to avoid alignment issue when elements in a row are diff sizes
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
@@ -112,8 +107,8 @@ function App() {
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
     let newBoard = curBoard.slice();
-    newBoard[i][j] = "X";
-    newBoard[0][0] = "X";
+    newBoard[i][j] = "pl";
+    newBoard[0][0] = "pl";
     setCurBoard(newBoard);
     return -1;
   }
