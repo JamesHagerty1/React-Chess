@@ -61,13 +61,19 @@ const Board: FC<BoardProps> = (props) => {
 
 
 interface SVGLayerProps {
- top: number;
- left: number;
+  dims: [number, number, number, number]; // top, left, width, height
+  lastMove: [number, number, number, number]; // prev r and c, new r and c
 }
 
 const SVGLayer: FC<SVGLayerProps> = (props) => {
+  const [top, left, width, height] = props.dims;
+  const [oldR, oldC, newR, newC] = props.lastMove;
+
+  console.log(oldR, oldC, newR, newC);
+
   return (
-    <div className="svg-layer" style={{"top": `${props.top}px`, "left": `${props.left}px`}}>
+    <div className="svg-layer" 
+    style={{"top": `${top}px`, "left": `${left}px`}}>
       <svg className="svg-box">
         <line className="svg-line" x1="10" y1="10" x2="400" y2="400" 
         stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
@@ -89,7 +95,6 @@ function App() {
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
-
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
 
   function clickTile(i: number, j: number): number {
@@ -102,20 +107,23 @@ function App() {
   }
 
   // State for SVG drawing logic
-  const [top, setTop] = useState<number>(0);
-  const [left, setLeft] = useState<number>(0);
+  const [dims, setDims] = 
+    useState<[number, number, number, number]>([-1, -1, -1, -1]);
 
   const newDims = (newTop: number, newLeft: number, newWidth: number, 
                    newHeight: number) => {
-    setTop(newTop);
-    setLeft(newLeft);
+   setDims([newTop, newLeft, newWidth, newHeight]);
   };
+
+  const [lastMove, setLastMove] = 
+    useState<[number, number, number, number]>([0, 0, 7, 7]); // temp vals
+
 
   //
   return (
     <div className="flex-container">
       <Board curBoard={curBoard} newDims={newDims} clickTile={clickTile} />
-      <SVGLayer top={top} left={left} />
+      <SVGLayer dims={dims} lastMove={lastMove} />
       <div className="move-history">
         <h1>Move History</h1>
       </div>
