@@ -6,6 +6,7 @@ interface TileProps {
   piece: string;
   r: number;
   c: number;
+  dim: number | undefined;
   clickTile: Function;
 }
 
@@ -15,9 +16,12 @@ const Tile: FC<TileProps> = (props) => {
     props.clickTile(props.r, props.c);
   }
 
+  let tileItem = <img src={require(`./images/kd.png`)} alt={"piece"} width={props.dim} height={props.dim} />;
+
   return (
     <div className="board-tile" onClick={() => handleClick()}>
-      {props.piece}
+      <img className="board-tile-texture-img" src={require(`./images/kd.png`)} alt={"piece"}  />
+      <img className="board-tile-piece-img" src={require(`./images/kd.png`)} alt={"piece"}  />
     </div>
   )
 }
@@ -25,6 +29,7 @@ const Tile: FC<TileProps> = (props) => {
 
 interface BoardProps {
   curBoard: string[][];
+  tileDim: number;
   newDims: Function;
   clickTile: Function;
 }
@@ -50,7 +55,7 @@ const Board: FC<BoardProps> = (props) => {
         <div key={r.toString()} className="board-row">
           {props.curBoard[r].map((pieceId, c) => 
             <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} 
-            clickTile={props.clickTile}/>
+            dim={props.tileDim} clickTile={props.clickTile}/>
           )}
         </div>
       )}
@@ -88,14 +93,14 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
 function App() {
   // State for game logic
   let startBoard = [
-    ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
-    ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
-    ["_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_"],
-    ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
-    ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
+    ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
+    ["pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd"],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
+    ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
 
@@ -123,7 +128,8 @@ function App() {
   //
   return (
     <div className="flex-container">
-      <Board curBoard={curBoard} newDims={newDims} clickTile={clickTile} />
+      <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
+      clickTile={clickTile} />
       <SVGLayer dims={dims} lastMove={lastMove} />
       <div className="move-history">
         <h1>Move History</h1>
