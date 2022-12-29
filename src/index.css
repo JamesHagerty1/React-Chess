@@ -31,15 +31,15 @@
 .board-tile-texture-img {
   width: 100%;
   height: 100%;
-  position: relative;
+  position: relative; /* allow board-tile-piece-img to stack on top of this */
 }
 
-.board-tile-piece-img { /* stacks on top of board-tile-texture-img */
-  top: 0px;
-  left: 0px;
+.board-tile-piece-img { 
+  top: 0px; /* to stack on top of board-tile-texture-img */ 
+  left: 0px; /* to stack on top of board-tile-texture-img */ 
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: absolute; /* to stack on top of board-tile-texture-img */ 
 }
 
 .svg-layer {
