@@ -16,15 +16,16 @@ const Tile: FC<TileProps> = (props) => {
     props.clickTile(props.r, props.c);
   }
 
-  let tileTexture = <img className="board-tile-texture-img" src={require(`./images/kd.png`)} />;
+  const tileColor = ((props.r + props.c) % 2 == 0) ? "white" : "lavender";
 
-  let tileItem = props.piece != "" ? 
+  const tileItem = (props.piece != "") ? 
     <img className="board-tile-piece-img"
     src={require(`./images/${props.piece}.png`)} /> :
     <div></div>;
 
   return (
-    <div className="board-tile" onClick={() => handleClick()}>
+    <div className="board-tile" onClick={() => handleClick()}
+    style={{"backgroundColor": tileColor}}>
       {tileItem}
     </div>
   )
