@@ -25,15 +25,33 @@ const Tile: FC<TileProps> = (props) => {
 
 interface BoardProps {
   curBoard: string[][];
+  newDims: Function;
   clickTile: Function;
 }
 
 const Board: FC<BoardProps> = (props) => {
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  // Tell parent component about updated HTML dims
+  const onResize = () => {
+    props.newDims(boardRef.current?.offsetLeft,
+                  boardRef.current?.offsetTop,
+                  boardRef.current?.offsetWidth,
+                  boardRef.current?.offsetHeight);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", onResize);
+  }, []);
+
   return (
-    <div className="board">
+    <div ref={boardRef} className="board">
       {props.curBoard.map((row, r) =>
         <div key={r.toString()} className="board-row">
-          {props.curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} clickTile={props.clickTile}/>)}
+          {props.curBoard[r].map((pieceId, c) => 
+            <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} 
+            clickTile={props.clickTile}/>
+          )}
         </div>
       )}
     </div>
@@ -42,6 +60,7 @@ const Board: FC<BoardProps> = (props) => {
 
 
 function App() {
+  // State for game logic
   let startBoard = [
     ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
     ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
@@ -52,17 +71,8 @@ function App() {
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
+
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
-
-  const getPosition = () => {
-    console.log("getPosition:");
-    console.log();
-  };
-
-  useEffect(() => {
-    getPosition(); 
-    window.addEventListener("resize", getPosition);
-  }, []);
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
@@ -73,9 +83,16 @@ function App() {
     return -1;
   }
 
+  // State for SVG drawing logic
+  const newDims = (leftOffset: number, topOffset: number, width: number, 
+                   height: number) => {
+    console.log( width, height );
+  };
+
+  //
   return (
     <div className="flex-container">
-      <Board curBoard={curBoard} clickTile={clickTile} />
+      <Board curBoard={curBoard} newDims={newDims} clickTile={clickTile} />
       <div className="svg-layer">
         <svg className="svg-box">
           <line className="svg-line" x1="10" y1="10" x2="400" y2="400" stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
