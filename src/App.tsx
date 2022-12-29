@@ -36,8 +36,7 @@ const Board: FC<BoardProps> = (props) => {
   const onResize = () => {
     props.newDims(boardRef.current?.offsetTop,
                   boardRef.current?.offsetLeft,
-                  boardRef.current?.offsetWidth,
-                  boardRef.current?.offsetHeight);
+                  boardRef.current?.offsetWidth);
   }
 
   useEffect(() => {
@@ -61,21 +60,24 @@ const Board: FC<BoardProps> = (props) => {
 
 
 interface SVGLayerProps {
-  dims: [number, number, number, number]; // top, left, width, height
+  dims: [number, number, number]; // top, left, width
   lastMove: [number, number, number, number]; // prev r and c, new r and c
 }
 
 const SVGLayer: FC<SVGLayerProps> = (props) => {
-  const [top, left, width, height] = props.dims;
+  const [top, left, width] = props.dims;
   const [oldR, oldC, newR, newC] = props.lastMove;
 
-  console.log(oldR, oldC, newR, newC);
+  // coords for line showing latest move
+  const [tileDim, halfTileDim] = [width / 8, width / 16];
+  const [x1, x2] = [halfTileDim + oldC * tileDim, halfTileDim + newC * tileDim];
+  const [y1, y2] = [halfTileDim + oldR * tileDim, halfTileDim + newR * tileDim];
 
   return (
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
       <svg className="svg-box">
-        <line className="svg-line" x1="10" y1="10" x2="400" y2="400" 
+        <line className="svg-line" x1={x1} y1={y1} x2={x2} y2={y2} 
         stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
       </svg>
   </div>
@@ -108,15 +110,14 @@ function App() {
 
   // State for SVG drawing logic
   const [dims, setDims] = 
-    useState<[number, number, number, number]>([-1, -1, -1, -1]);
+    useState<[number, number, number]>([-1, -1, -1]);
 
-  const newDims = (newTop: number, newLeft: number, newWidth: number, 
-                   newHeight: number) => {
-   setDims([newTop, newLeft, newWidth, newHeight]);
+  const newDims = (newTop: number, newLeft: number, newWidth: number) => {
+   setDims([newTop, newLeft, newWidth]);
   };
 
   const [lastMove, setLastMove] = 
-    useState<[number, number, number, number]>([0, 0, 7, 7]); // temp vals
+    useState<[number, number, number, number]>([0, 0, 6, 4]); // temp vals
 
 
   //
