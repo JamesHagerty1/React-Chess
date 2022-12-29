@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
 
 
@@ -13,9 +13,6 @@ const Tile: FC<TileProps> = (props) => {
   function handleClick() {
     console.log("Tile handleClick");
     props.clickTile(props.r, props.c);
-
-    // NOW! get coords of me
-
   }
 
   return (
@@ -25,7 +22,26 @@ const Tile: FC<TileProps> = (props) => {
   )
 }
 
-const Board: FC = () => {
+
+interface BoardProps {
+  curBoard: string[][];
+  clickTile: Function;
+}
+
+const Board: FC<BoardProps> = (props) => {
+  return (
+    <div className="board">
+      {props.curBoard.map((row, r) =>
+        <div key={r.toString()} className="board-row">
+          {props.curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} clickTile={props.clickTile}/>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function App() {
   let startBoard = [
     ["rookB", "knightB", "bishopB", "queenB", "kingB", "knightB", "bishopB", "rookB"],
     ["pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB", "pawnB"],
@@ -36,7 +52,17 @@ const Board: FC = () => {
     ["pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW", "pawnW"],
     ["rookW", "knightW", "bishopW", "queenW", "kingW", "knightW", "bishopW", "rookW"]
   ];
-  const [curBoard, setCurBoard] = useState(startBoard);
+  const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
+
+  const getPosition = () => {
+    console.log("getPosition:");
+    console.log();
+  };
+
+  useEffect(() => {
+    getPosition(); 
+    window.addEventListener("resize", getPosition);
+  }, []);
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
@@ -49,13 +75,7 @@ const Board: FC = () => {
 
   return (
     <div className="flex-container">
-      <div className="board">
-        {curBoard.map((row, r) =>
-          <div key={r.toString()} className="board-row">
-            {curBoard[r].map((pieceId, c) => <Tile key={c.toString()} piece={curBoard[r][c]} r={r} c={c} clickTile={clickTile}/>)}
-          </div>
-        )}
-      </div>
+      <Board curBoard={curBoard} clickTile={clickTile} />
       <div className="svg-layer">
         <svg className="svg-box">
           <line className="svg-line" x1="10" y1="10" x2="400" y2="400" stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
@@ -64,15 +84,6 @@ const Board: FC = () => {
       <div className="move-history">
         <h1>Move History</h1>
       </div>
-    </div>
-  );
-}
-
-
-function App() {
-  return (
-    <div>
-      <Board />
     </div>
   );
 }
