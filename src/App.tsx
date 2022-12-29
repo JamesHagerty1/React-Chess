@@ -34,13 +34,14 @@ const Board: FC<BoardProps> = (props) => {
 
   // Tell parent component about updated HTML dims
   const onResize = () => {
-    props.newDims(boardRef.current?.offsetLeft,
-                  boardRef.current?.offsetTop,
+    props.newDims(boardRef.current?.offsetTop,
+                  boardRef.current?.offsetLeft,
                   boardRef.current?.offsetWidth,
                   boardRef.current?.offsetHeight);
   }
 
   useEffect(() => {
+    onResize(); // Init parent knowledge of board dims
     window.addEventListener("resize", onResize);
   }, []);
 
@@ -55,6 +56,23 @@ const Board: FC<BoardProps> = (props) => {
         </div>
       )}
     </div>
+  );
+}
+
+
+interface SVGLayerProps {
+ top: number;
+ left: number;
+}
+
+const SVGLayer: FC<SVGLayerProps> = (props) => {
+  return (
+    <div className="svg-layer" style={{"top": `${props.top}px`, "left": `${props.left}px`}}>
+      <svg className="svg-box">
+        <line className="svg-line" x1="10" y1="10" x2="400" y2="400" 
+        stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
+      </svg>
+  </div>
   );
 }
 
@@ -84,20 +102,20 @@ function App() {
   }
 
   // State for SVG drawing logic
-  const newDims = (leftOffset: number, topOffset: number, width: number, 
-                   height: number) => {
-    console.log( width, height );
+  const [top, setTop] = useState<number>(0);
+  const [left, setLeft] = useState<number>(0);
+
+  const newDims = (newTop: number, newLeft: number, newWidth: number, 
+                   newHeight: number) => {
+    setTop(newTop);
+    setLeft(newLeft);
   };
 
   //
   return (
     <div className="flex-container">
       <Board curBoard={curBoard} newDims={newDims} clickTile={clickTile} />
-      <div className="svg-layer">
-        <svg className="svg-box">
-          <line className="svg-line" x1="10" y1="10" x2="400" y2="400" stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
-        </svg>
-      </div>
+      <SVGLayer top={top} left={left} />
       <div className="move-history">
         <h1>Move History</h1>
       </div>
