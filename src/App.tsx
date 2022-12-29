@@ -21,7 +21,7 @@ const Tile: FC<TileProps> = (props) => {
   return (
     <div className="board-tile" onClick={() => handleClick()}
     style={{"backgroundColor": tileColor}}>
-      <img className="board-tile-piece-img" src={require(`./images/${props.piece}.png`)} />
+      <img className="piece-img" src={require(`./images/${props.piece}.png`)} />
     </div>
   )
 }
@@ -90,6 +90,25 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
 }
 
 
+interface GraveyardProps {
+  pieces: string[];
+}
+
+const Graveyard: FC<GraveyardProps> = (props) => {
+
+  // {props.curBoard[r].map((pieceId, c) => 
+  //   <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} 
+  //   dim={props.tileDim} clickTile={props.clickTile}/>
+  // )}
+
+  return (
+    <div className="graveyard">
+      {props.pieces.map((pieceId) => <img className="graveyard-piece-img" src={require(`./images/${pieceId}.png`)} />)}
+    </div>
+  )
+}
+
+
 function App() {
   // State for game logic
   let startBoard = [
@@ -102,7 +121,13 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
+  // let graveyard = ["_", "_", "_", "_", "_", "_", "_", "_",
+  //                  "_", "_", "_", "_", "_", "_", "_", "_"];
+  let graveyard = ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",
+                   "rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",];
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
+  const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
+  const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
 
   function clickTile(i: number, j: number): number {
     console.log(i + "-" + j);
@@ -124,13 +149,16 @@ function App() {
   const [lastMove, setLastMove] = 
     useState<[number, number, number, number]>([0, 0, 6, 4]); // temp vals
 
-
   //
   return (
     <div className="flex-container">
-      <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
-      clickTile={clickTile} />
-      <SVGLayer dims={dims} lastMove={lastMove} />
+      <div>
+        <Graveyard pieces={lightGraveyard} />
+        <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
+        clickTile={clickTile} />
+        <SVGLayer dims={dims} lastMove={lastMove} />
+        <Graveyard pieces={darkGraveyard} />
+      </div>
       <div className="move-history">
         <h1>Move History</h1>
       </div>
