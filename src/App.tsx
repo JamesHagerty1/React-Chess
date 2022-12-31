@@ -177,7 +177,8 @@ function App() {
       const [rSel, cSel] = curSelect;
       let newBoard = curBoard.slice();
       const [capture, rcCap]: [boolean, [number, number]] = 
-        isCapture(rSel, cSel, r, c, curBoard);
+        isCapture(rSel, cSel, r, c, curBoard, 
+          moveHistory[moveHistory.length - 1]);
       let newMoveHistory = moveHistory.slice();
 
       if (capture) {

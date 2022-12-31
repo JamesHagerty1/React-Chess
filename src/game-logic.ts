@@ -28,7 +28,9 @@ export function isMove(r: number, c: number, curMoves: [number, number][]):
 
 // assert piece is at board[rSel][cSel] and all (r, c) in bounds
 export function isCapture(rSel: number, cSel: number, rDest: number, 
-  cDest: number, board: string[][]): [boolean, [number, number]] {
+  cDest: number, board: string[][], 
+  lastMove: [string, number, number, number, number]): 
+  [boolean, [number, number]] {
   const shade: string = board[rSel][cSel].charAt(1);
   const captureShade: string = (shade == "l") ? "d" : "l";
   // conventional capture
@@ -37,7 +39,9 @@ export function isCapture(rSel: number, cSel: number, rDest: number,
     return [true, [rDest, cDest]];
   }
   // pawn en passant capture
-
+  if (isEnPassant(rDest, cDest, board, captureShade, lastMove)) {
+    return [true, [lastMove[3], lastMove[4]]];
+  }
   return [false, [-1, -1]];
 }
 
