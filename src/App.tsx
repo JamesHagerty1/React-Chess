@@ -123,6 +123,24 @@ const Graveyard: FC<GraveyardProps> = (props) => {
 }
 
 
+interface MoveHistoryProps {
+  history: [string, number, number, number, number][];
+}
+
+const MoveHistory: FC<MoveHistoryProps> = (props) => {
+  return (
+    <div>
+      <h1>Move History</h1>
+      {props.history.map((move, i) =>
+        <p key={i}>
+          {`${move[0]} (${move.slice(1, 3)}) -> (${move.slice(3, 5)})`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+
 function App() {
   // State for game logic
   let startBoard: string[][] = [
@@ -145,6 +163,8 @@ function App() {
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
   const [lastMove, setLastMove] = 
     useState<[number, number, number, number]>([-1, -1, -1, -1]);
+  const [moveHistory, setMoveHistory] = 
+    useState<[string, number, number, number, number][]>([]);
 
   // Where UI and game logic meet
   function clickTile(r: number, c: number): number {
@@ -158,6 +178,7 @@ function App() {
       let newBoard = curBoard.slice();
       const [capture, rcCap]: [boolean, [number, number]] = 
         isCapture(rSel, cSel, r, c, curBoard);
+      let newMoveHistory = moveHistory.slice();
 
       if (capture) {
         let newGraveyard = 
@@ -171,6 +192,9 @@ function App() {
       newBoard[r][c] = newBoard[rSel][cSel];
       newBoard[rSel][cSel] = "_";
       setCurBoard(newBoard);
+
+      newMoveHistory.push([curBoard[r][c], rSel, cSel, r, c]);
+      setMoveHistory(newMoveHistory);
 
       setCurSelect([-1, -1]);
       setCurMoves([]);
@@ -209,9 +233,7 @@ function App() {
         lastMove={lastMove} />
         <Graveyard pieces={darkGraveyard} />
       </div>
-      <div className="move-history">
-        <h1>Move History</h1>
-      </div>
+      <MoveHistory history={moveHistory} />
     </div>
   );
 }
