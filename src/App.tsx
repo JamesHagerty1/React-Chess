@@ -125,13 +125,17 @@ function App() {
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
   const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
   const [lightTurn, setLightTurn] = useState<boolean>(true);
+  const [curSelect, setCurSelect] = useState([-1, -1]);
 
   function clickTile(r: number, c: number): number {
     console.log(r + "-" + c);
     if (!lightTurn) {
       return -1;
     }
-    selectPiece(r, c, curBoard, lightTurn);
+    const [legalSelect, moves] = selectPiece(r, c, curBoard, lightTurn);
+    if (legalSelect) {
+      setCurSelect([r, c]); // SELECTION DRAWING TBD
+    }
 
     // let newBoard = curBoard.slice();
     // newBoard[i][j] = "pl";
