@@ -87,7 +87,7 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
       <svg className="svg-box">
-        {selR != -1 && selC != -1 &&
+        {selR != -1 &&
           <circle className="svg-drawing" cx={cx} cy={cy} 
           r={halfTileDim * (9 / 10)} stroke="dodgerblue" fill="none"
           strokeWidth="3" />
@@ -97,8 +97,10 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
           cx={halfTileDim + rc[1] * tileDim} cy={halfTileDim + rc[0] * tileDim} 
           r={tileDim / 7} fill="dodgerblue" />
         )}
-        <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
-        stroke="coral" strokeWidth="4" strokeLinecap="round"></line>
+        {oldR != -1 &&
+          <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
+          stroke="lightskyblue" strokeWidth="4" strokeLinecap="round"></line>
+        }
       </svg>
   </div>
   );
@@ -144,9 +146,10 @@ function App() {
   const [lightTurn, setLightTurn] = useState<boolean>(true);
   const [curSelect, setCurSelect] = useState<[number, number]>([-1, -1]);
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
+  const [lastMove, setLastMove] = 
+    useState<[number, number, number, number]>([-1, -1, -1, -1]);
 
   function clickTile(r: number, c: number): number {
-    console.log(r + "-" + c);
     // if (!lightTurn) {
     //   return -1;
     // }
@@ -163,6 +166,7 @@ function App() {
       setCurSelect([-1, -1]);
       setCurMoves([]);
       setLightTurn(!lightTurn);
+      setLastMove([r, c, rSel, cSel]);
       return 0;
     }
 
@@ -184,9 +188,6 @@ function App() {
   const newDims = (newTop: number, newLeft: number, newWidth: number) => {
    setDims([newTop, newLeft, newWidth]);
   };
-
-  const [lastMove, setLastMove] = 
-    useState<[number, number, number, number]>([0, 0, 6, 4]); // temp vals
 
   //
   return (

@@ -9,6 +9,7 @@ export function selectPiece (r: number, c: number, board: string[][],
  return [false, []];
 } // return legal moves when applicable
 
+// TS seems to not have built in fn for checking if list contains tuple
 export function isMove(r: number, c: number, curMoves: [number, number][]): 
   boolean {
   for (let i in curMoves) {
@@ -26,7 +27,6 @@ function legalMoves(r: number, c: number, board: string[][]):
   [number, number][] {
   const [piece, shade]: [string, string] = 
     [board[r][c].charAt(0), board[r][c].charAt(1)];
-  console.log(piece, shade);
 
   switch (piece) {
     case "p":
