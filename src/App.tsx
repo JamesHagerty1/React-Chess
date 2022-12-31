@@ -1,5 +1,6 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
+import { selectPiece } from './game-logic';
 
 
 interface TileProps {
@@ -12,7 +13,6 @@ interface TileProps {
 
 const Tile: FC<TileProps> = (props) => {
   function handleClick() {
-    console.log("Tile handleClick");
     props.clickTile(props.r, props.c);
   }
 
@@ -95,15 +95,12 @@ interface GraveyardProps {
 }
 
 const Graveyard: FC<GraveyardProps> = (props) => {
-
-  // {props.curBoard[r].map((pieceId, c) => 
-  //   <Tile key={c.toString()} piece={props.curBoard[r][c]} r={r} c={c} 
-  //   dim={props.tileDim} clickTile={props.clickTile}/>
-  // )}
-
   return (
     <div className="graveyard">
-      {props.pieces.map((pieceId) => <img className="graveyard-piece-img" src={require(`./images/${pieceId}.png`)} />)}
+      {props.pieces.map((pieceId, i) => 
+        <img key={i} className="graveyard-piece-img" 
+        src={require(`./images/${pieceId}.png`)} />
+      )}
     </div>
   )
 }
@@ -111,7 +108,7 @@ const Graveyard: FC<GraveyardProps> = (props) => {
 
 function App() {
   // State for game logic
-  let startBoard = [
+  let startBoard: string[][] = [
     ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
     ["pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd"],
     ["_", "_", "_", "_", "_", "_", "_", "_"],    // even empty square has its own image, to avoid alignment issue when elements in a row are diff sizes
@@ -121,21 +118,26 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
-  // let graveyard = ["_", "_", "_", "_", "_", "_", "_", "_",
-  //                  "_", "_", "_", "_", "_", "_", "_", "_"];
-  let graveyard = ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",
-                   "rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",];
+  let graveyard: string[] = ["bl", "bd", "_", "_", "_", "_", "_", "_",
+                   "_", "_", "_", "_", "_", "_", "_", "_"];
+
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
   const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
+  const [lightTurn, setLightTurn] = useState<boolean>(true);
 
-  function clickTile(i: number, j: number): number {
-    console.log(i + "-" + j);
-    let newBoard = curBoard.slice();
-    newBoard[i][j] = "pl";
-    newBoard[0][0] = "pl";
-    setCurBoard(newBoard);
-    return -1;
+  function clickTile(r: number, c: number): number {
+    console.log(r + "-" + c);
+    if (!lightTurn) {
+      return -1;
+    }
+    selectPiece(r, c, curBoard, lightTurn);
+
+    // let newBoard = curBoard.slice();
+    // newBoard[i][j] = "pl";
+    // newBoard[0][0] = "pl";
+    // setCurBoard(newBoard);
+    return 0;
   }
 
   // State for SVG drawing logic
