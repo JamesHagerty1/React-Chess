@@ -9,6 +9,17 @@ export function selectPiece (r: number, c: number, board: string[][],
  return [false, []];
 } // return legal moves when applicable
 
+export function isMove(r: number, c: number, curMoves: [number, number][]): 
+  boolean {
+  for (let i in curMoves) {
+    const [rMove, cMove] = curMoves[i];
+    if (r == rMove && c == cMove) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* Contained helpers **********************************************************/
 
 function legalMoves(r: number, c: number, board: string[][]): 
@@ -29,7 +40,6 @@ function legalMoves(r: number, c: number, board: string[][]):
 // assert pawn at board[r][c]
 function pawnMoves(r: number, c: number, board: string[][], shade: string):
   [number, number][] {
-  console.log("pawn moves");
   let moves: [number, number][] = [];
 
   // forward 1
@@ -37,6 +47,14 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string):
   if (0 <= f1R && f1R < 8 && board[f1R][c] == "_") {
     moves.push([f1R, c]);
   }
+  // forward 2
+  const f2R = (shade == "l") ? r - 2: r + 2;
+  if (0 <= f2R && f2R < 8 && board[f2R][c] == "_" && 
+    ((shade == "l" && r == 6) || (shade == "d" && r == 1))) {
+    moves.push([f2R, c]);
+  }
+
+  // TBD capture moves / special moves
 
   return moves;
 }

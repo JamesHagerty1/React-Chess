@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
-import { selectPiece } from './game-logic';
+import { selectPiece, isMove } from './game-logic';
 
 
 interface TileProps {
@@ -39,9 +39,8 @@ const Board: FC<BoardProps> = (props) => {
 
   // Tell parent component about updated HTML dims
   const onResize = () => {
-    props.newDims(boardRef.current?.offsetTop,
-                  boardRef.current?.offsetLeft,
-                  boardRef.current?.offsetWidth);
+    props.newDims(boardRef.current?.offsetTop, boardRef.current?.offsetLeft,
+      boardRef.current?.offsetWidth);
   }
 
   useEffect(() => {
@@ -134,8 +133,10 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
-  let graveyard: string[] = ["bl", "bd", "_", "_", "_", "_", "_", "_",
-                   "_", "_", "_", "_", "_", "_", "_", "_"];
+  let graveyard: string[] = [
+    "bl", "bd", "_", "_", "_", "_", "_", "_",
+    "_", "_", "_", "_", "_", "_", "_", "_"
+  ];
 
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
@@ -151,6 +152,20 @@ function App() {
     // }
     // Gonna control dark pieces for now for testing
 
+    if (isMove(r, c, curMoves)) {
+      const [rSel, cSel] = curSelect;
+
+      let newBoard = curBoard.slice();
+      newBoard[r][c] = newBoard[rSel][cSel];
+      newBoard[rSel][cSel] = "_";
+      setCurBoard(newBoard);
+
+      setCurSelect([-1, -1]);
+      setCurMoves([]);
+      setLightTurn(!lightTurn);
+      return 0;
+    }
+
     const [legalSelect, moves]: [boolean, [number, number][]] = 
       selectPiece(r, c, curBoard, lightTurn);
     if (legalSelect) {
@@ -159,11 +174,6 @@ function App() {
       setCurSelect([-1, -1]); // TEMP
     }
     setCurMoves(moves);
-
-    // let newBoard = curBoard.slice();
-    // newBoard[i][j] = "pl";
-    // newBoard[0][0] = "pl";
-    // setCurBoard(newBoard);
     return 0;
   }
 
