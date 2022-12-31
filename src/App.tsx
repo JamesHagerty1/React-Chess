@@ -70,7 +70,7 @@ interface SVGLayerProps {
   lastMove: [number, number, number, number]; // prev r and c, new r and c
 }
 
-const SVGLayer: FC<SVGLayerProps> = (props) => {
+const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD rename SVGLayer, now it isn't just SVG
   const [top, left, width] = props.dims;
   const [selR, selC] = props.curSelect;
   const [oldR, oldC, newR, newC] = props.lastMove;
@@ -86,6 +86,9 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
   return (
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
+      <div className="pawn-promotion">
+        <h3>PAWN PROMOTION</h3>
+      </div>
       <svg className="svg-box">
         {oldR != -1 &&
           <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
@@ -188,7 +191,7 @@ function App() {
         newGraveyard.push(curBoard[rCap][cCap]);
         lightTurn ? 
           setDarkGraveyard(newGraveyard) : setLightGraveyard(newGraveyard);
-        newBoard[rCap][cCap] = "_"; // not always same as piece dest (pawn en passant)
+        newBoard[rCap][cCap] = "_";
       }
       newBoard[r][c] = newBoard[rSel][cSel];
       newBoard[rSel][cSel] = "_";
@@ -233,6 +236,7 @@ function App() {
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
         lastMove={lastMove} />
         <Graveyard pieces={darkGraveyard} />
+        
       </div>
       <MoveHistory history={moveHistory} />
     </div>

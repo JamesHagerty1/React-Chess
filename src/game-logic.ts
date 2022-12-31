@@ -46,7 +46,7 @@ export function isCapture(rSel: number, cSel: number, rDest: number,
 }
 
 
-/* Contained helpers **********************************************************/
+/* File contained helpers *****************************************************/
 
 
 function legalMoves(r: number, c: number, board: string[][],
@@ -76,6 +76,7 @@ function isEnPassant(rDest: number, cDest: number, board: string[][],
     piece.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
   const rBehind: number = (captureShade == "l") ? rDest - 1 : rDest + 1;
   const pawnBehind: boolean = (rBehind == r2 && cDest == c2);
+
   return blankDest && pawnMovedTwo && pawnBehind;
 }
 
@@ -116,8 +117,6 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string,
     isEnPassant(rF1, cR, board, captureShade, lastMove)) {
     moves.push([rF1, cR]);
   }
-
-  // TBD capture moves / special moves
 
   return moves;
 }

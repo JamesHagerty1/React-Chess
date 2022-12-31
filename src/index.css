@@ -51,6 +51,11 @@
   pointer-events: none; /* Allow player to click board where SVG are overlayed */
 }
 
+.pawn-promotion {
+  position: absolute;
+  background: cyan;
+}
+
 .graveyard {
   outline: 1px solid blue;
   display: flex;
