@@ -66,15 +66,21 @@ const Board: FC<BoardProps> = (props) => {
 
 interface SVGLayerProps {
   dims: [number, number, number]; // top, left, width
+  curSelect: [number, number];
   lastMove: [number, number, number, number]; // prev r and c, new r and c
 }
 
 const SVGLayer: FC<SVGLayerProps> = (props) => {
   const [top, left, width] = props.dims;
+  const [selR, selC] = props.curSelect;
   const [oldR, oldC, newR, newC] = props.lastMove;
 
-  // coords for line showing latest move
   const [tileDim, halfTileDim] = [width / 8, width / 16];
+
+  // coords for selected piece ricle
+  const [cx, cy] = [halfTileDim + selC * tileDim, halfTileDim + selR * tileDim];
+
+  // coords for line showing latest move
   const [x1, x2] = [halfTileDim + oldC * tileDim, halfTileDim + newC * tileDim];
   const [y1, y2] = [halfTileDim + oldR * tileDim, halfTileDim + newR * tileDim];
 
@@ -82,8 +88,12 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
       <svg className="svg-box">
-        <line className="svg-line" x1={x1} y1={y1} x2={x2} y2={y2} 
-        stroke="Coral" strokeWidth="4" strokeLinecap="round"></line>
+        {selR != -1 && selC != -1 &&
+          <circle className="svg-drawing" cx={cx} cy={cy} r={halfTileDim-1} 
+          stroke="dodgerblue" fill="none"strokeWidth="3" />
+        }
+        <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
+        stroke="coral" strokeWidth="4" strokeLinecap="round"></line>
       </svg>
   </div>
   );
@@ -125,7 +135,7 @@ function App() {
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
   const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
   const [lightTurn, setLightTurn] = useState<boolean>(true);
-  const [curSelect, setCurSelect] = useState([-1, -1]);
+  const [curSelect, setCurSelect] = useState<[number, number]>([-1, -1]);
 
   function clickTile(r: number, c: number): number {
     console.log(r + "-" + c);
@@ -135,6 +145,8 @@ function App() {
     const [legalSelect, moves] = selectPiece(r, c, curBoard, lightTurn);
     if (legalSelect) {
       setCurSelect([r, c]); // SELECTION DRAWING TBD
+    } else {
+      setCurSelect([-1, -1]); // TEMP
     }
 
     // let newBoard = curBoard.slice();
@@ -162,7 +174,7 @@ function App() {
         <Graveyard pieces={lightGraveyard} />
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
-        <SVGLayer dims={dims} lastMove={lastMove} />
+        <SVGLayer dims={dims} curSelect={curSelect} lastMove={lastMove} />
         <Graveyard pieces={darkGraveyard} />
       </div>
       <div className="move-history">

@@ -47,7 +47,7 @@
   pointer-events: none; /* Allow player to click board where SVG are overlayed */ 
 }
 
-.svg-line {
+.svg-drawing {
   pointer-events: none; /* Allow player to click board where SVG are overlayed */
 }
 
