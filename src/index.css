@@ -52,8 +52,15 @@
 }
 
 .pawn-promotion {
+  width: 45%;
+  height: 11.25%; 
   position: absolute;
-  background: cyan;
+  background: lightgrey;
+}
+
+.promo-img {
+  width: 25%;
+  height: 100%;
 }
 
 .graveyard {

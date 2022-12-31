@@ -67,14 +67,17 @@ interface SVGLayerProps {
   dims: [number, number, number]; // top, left, width
   curSelect: [number, number];
   curMoves: [number, number][];
-  lastMove: [number, number, number, number]; // prev r and c, new r and c
+  lastMove: [string, number, number, number, number]; // prev r and c, new r and c
 }
 
 const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD rename SVGLayer, now it isn't just SVG
   const [top, left, width] = props.dims;
   const [selR, selC] = props.curSelect;
-  const [oldR, oldC, newR, newC] = props.lastMove;
+  const [piece, oldR, oldC, newR, newC] = props.lastMove;
   const [tileDim, halfTileDim] = [width / 8, width / 16];
+
+  // piece promotion box reference
+  const shade = piece.charAt(1);
 
   // coords for selected piece ricle
   const [cx, cy] = [halfTileDim + selC * tileDim, halfTileDim + selR * tileDim];
@@ -87,7 +90,10 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
       <div className="pawn-promotion">
-        <h3>PAWN PROMOTION</h3>
+        <img className="promo-img" src={require(`./images/q${shade}.png`)} />
+        <img className="promo-img" src={require(`./images/r${shade}.png`)} />
+        <img className="promo-img" src={require(`./images/b${shade}.png`)} />
+        <img className="promo-img" src={require(`./images/n${shade}.png`)} />
       </div>
       <svg className="svg-box">
         {oldR != -1 &&
@@ -164,8 +170,6 @@ function App() {
   const [lightTurn, setLightTurn] = useState<boolean>(true);
   const [curSelect, setCurSelect] = useState<[number, number]>([-1, -1]);
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
-  const [lastMove, setLastMove] = 
-    useState<[number, number, number, number]>([-1, -1, -1, -1]);       // TBD phase me out, redundant due to below
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
 
@@ -203,7 +207,6 @@ function App() {
       setCurSelect([-1, -1]);
       setCurMoves([]);
       setLightTurn(!lightTurn);
-      setLastMove([r, c, rSel, cSel]);
       return 0;
     }
 
@@ -234,7 +237,7 @@ function App() {
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
-        lastMove={lastMove} />
+        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : ["*l", -1, -1, -1, -1]} />
         <Graveyard pieces={darkGraveyard} />
         
       </div>
