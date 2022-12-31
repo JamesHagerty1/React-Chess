@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
-import { selectPiece, isMove } from './game-logic';
+import { selectPiece, isMove, isCapture } from './game-logic';
 
 
 interface TileProps {
@@ -23,7 +23,7 @@ const Tile: FC<TileProps> = (props) => {
     style={{"backgroundColor": tileColor}}>
       <img className="piece-img" src={require(`./images/${props.piece}.png`)} />
     </div>
-  )
+  );
 }
 
 
@@ -87,6 +87,10 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
       <svg className="svg-box">
+        {oldR != -1 &&
+          <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
+          stroke="lightskyblue" strokeWidth="4" strokeLinecap="round"></line>
+        }
         {selR != -1 &&
           <circle className="svg-drawing" cx={cx} cy={cy} 
           r={halfTileDim * (9 / 10)} stroke="dodgerblue" fill="none"
@@ -97,12 +101,8 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {
           cx={halfTileDim + rc[1] * tileDim} cy={halfTileDim + rc[0] * tileDim} 
           r={tileDim / 7} fill="dodgerblue" />
         )}
-        {oldR != -1 &&
-          <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
-          stroke="lightskyblue" strokeWidth="4" strokeLinecap="round"></line>
-        }
       </svg>
-  </div>
+    </div>
   );
 }
 
@@ -119,7 +119,7 @@ const Graveyard: FC<GraveyardProps> = (props) => {
         src={require(`./images/${pieceId}.png`)} />
       )}
     </div>
-  )
+  );
 }
 
 
@@ -135,10 +135,7 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
   ];
-  let graveyard: string[] = [
-    "bl", "bd", "_", "_", "_", "_", "_", "_",
-    "_", "_", "_", "_", "_", "_", "_", "_"
-  ];
+  let graveyard: string[] = [];
 
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
@@ -149,6 +146,7 @@ function App() {
   const [lastMove, setLastMove] = 
     useState<[number, number, number, number]>([-1, -1, -1, -1]);
 
+  // Where UI and game logic meet
   function clickTile(r: number, c: number): number {
     // if (!lightTurn) {
     //   return -1;
@@ -157,8 +155,19 @@ function App() {
 
     if (isMove(r, c, curMoves)) {
       const [rSel, cSel] = curSelect;
-
       let newBoard = curBoard.slice();
+      const [capture, rcCap]: [boolean, [number, number]] = 
+        isCapture(rSel, cSel, r, c, curBoard);
+
+      if (capture) {
+        let newGraveyard = 
+          lightTurn ? darkGraveyard.slice() : lightGraveyard.slice();
+        const [rCap, cCap] = rcCap;
+        newGraveyard.push(curBoard[rCap][cCap]);
+        lightTurn ? 
+          setDarkGraveyard(newGraveyard) : setLightGraveyard(newGraveyard);
+        newBoard[rCap][cCap] = "_"; // not always same as piece dest (pawn en passant)
+      }
       newBoard[r][c] = newBoard[rSel][cSel];
       newBoard[rSel][cSel] = "_";
       setCurBoard(newBoard);
