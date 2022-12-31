@@ -78,6 +78,11 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
 
   // piece promotion box reference
   const shade = piece.charAt(1);
+  const promos: string[] = 
+    (shade == "l") ? ["ql", "rl", "bl", "nl"] : ["nd", "bd", "rd", "qd"];
+  let promosStyle = (shade == "l") ? {"top": tileDim, "left": tileDim * newC} : 
+    {"bottom": tileDim, "left": tileDim * newC};
+
 
   // coords for selected piece ricle
   const [cx, cy] = [halfTileDim + selC * tileDim, halfTileDim + selR * tileDim];
@@ -89,11 +94,11 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
   return (
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
-      <div className="pawn-promotion">
-        <img className="promo-img" src={require(`./images/q${shade}.png`)} />
-        <img className="promo-img" src={require(`./images/r${shade}.png`)} />
-        <img className="promo-img" src={require(`./images/b${shade}.png`)} />
-        <img className="promo-img" src={require(`./images/n${shade}.png`)} />
+      <div className="pawn-promotion" style={promosStyle}>
+        {promos.map((piece, i) =>
+          <img key={i} className="promo-img" 
+          src={require(`./images/${piece}.png`)} />
+        )}
       </div>
       <svg className="svg-box">
         {oldR != -1 &&
