@@ -162,7 +162,7 @@ function App() {
   const [curSelect, setCurSelect] = useState<[number, number]>([-1, -1]);
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
   const [lastMove, setLastMove] = 
-    useState<[number, number, number, number]>([-1, -1, -1, -1]);
+    useState<[number, number, number, number]>([-1, -1, -1, -1]);       // TBD phase me out, redundant due to below
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
 
@@ -204,7 +204,7 @@ function App() {
     }
 
     const [legalSelect, moves]: [boolean, [number, number][]] = 
-      selectPiece(r, c, curBoard, lightTurn);
+      selectPiece(r, c, curBoard, lightTurn, moveHistory[moveHistory.length-1]);
     if (legalSelect) {
       setCurSelect([r, c]); // SELECTION DRAWING TBD
     } else {
