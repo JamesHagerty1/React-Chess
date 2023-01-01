@@ -80,8 +80,8 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
   const shade = piece.charAt(1);
   const promos: string[] = 
     (shade == "l") ? ["ql", "rl", "bl", "nl"] : ["nd", "bd", "rd", "qd"];
-  let promosStyle = (shade == "l") ? {"top": tileDim, "left": tileDim * newC} : 
-    {"bottom": tileDim, "left": tileDim * newC};
+  let promosStyle = (shade == "l") ? {"top": "0px", "left": tileDim * newC} : 
+    {"bottom": "0px", "left": tileDim * newC};
 
 
   // coords for selected piece ricle
