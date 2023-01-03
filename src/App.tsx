@@ -254,7 +254,7 @@ function App() {
     let newBoard = curBoard.slice();
     newBoard[r2][c2] = promoPiece;
     setCurBoard(newBoard);
-    
+
     // TBD -- once log format decided, log the promo
     setLightTurn(!lightTurn);
     setPawnPromo(false);
@@ -277,7 +277,8 @@ function App() {
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
-        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : ["*l", -1, -1, -1, -1]} 
+        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : 
+          ["*l", -1, -1, -1, -1]} 
         pawnPromo={pawnPromo} clickPromo={clickPromo}/>
         <Graveyard pieces={darkGraveyard} />
         

@@ -61,10 +61,13 @@ function legalMoves(r: number, c: number, board: string[][],
   lastMove: [string, number, number, number, number]): [number, number][] {
   const [piece, shade]: [string, string] = 
     [board[r][c].charAt(0), board[r][c].charAt(1)];
+  const captureShade: string = (shade == "l") ? "d" : "l";
 
   switch (piece) {
     case "p":
-      return pawnMoves(r, c, board, shade, lastMove);
+      return pawnMoves(r, c, board, shade, captureShade, lastMove);
+    case "n":
+      return knightMoves(r, c, board, shade);
     default:
       console.log("TBD");
       return [];
@@ -89,11 +92,11 @@ function isEnPassant(rDest: number, cDest: number, board: string[][],
 }
 
 
-// assert pawn at board[r][c]
+// assert pawn of shade at board[r][c]
 function pawnMoves(r: number, c: number, board: string[][], shade: string,
+  captureShade: string,
   lastMove: [string, number, number, number, number]): [number, number][] {
   let moves: [number, number][] = [];
-  const captureShade: string = (shade == "l") ? "d" : "l";
 
   // forward 1
   const rF1 = (shade == "l") ? r - 1 : r + 1;
@@ -130,3 +133,19 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string,
 }
 
 
+// assert knight of shade at board[r][c]
+function knightMoves(r: number, c: number, board: string[][], shade: string): 
+  [number, number][] {
+  let candidateMoves: [number, number][] = [
+    [r - 1, c - 2], [r - 2, c - 1], [r - 2, c + 1], [r - 1, c + 2],
+    [r + 1, c - 2], [r + 2, c - 1], [r + 2, c + 1], [r + 1, c + 2]];
+  let moves: [number, number][] = [];
+  for (let i in candidateMoves) {
+    const [rCan, cCan] = candidateMoves[i];
+    if (0 <= rCan && rCan < 8 && 0 <= cCan && cCan < 8 &&
+      !board[rCan][cCan].endsWith(shade)) {
+      moves.push([rCan, cCan]);
+    }
+  }
+  return moves;
+}
