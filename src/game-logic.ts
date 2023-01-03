@@ -46,6 +46,14 @@ export function isCapture(rSel: number, cSel: number, rDest: number,
 }
 
 
+// assert that piece string is always for a piece (2 chars)
+export function isPawnPromo(piece: string, r: number): boolean {
+  const pawn: boolean = (piece.charAt(0) == "p");
+  const shade: string = piece.charAt(1);
+  return pawn && ((shade == "l" && r == 0) || (shade == "d" && r == 7));
+}
+
+
 /* File contained helpers *****************************************************/
 
 

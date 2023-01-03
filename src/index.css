@@ -44,7 +44,7 @@
   /* outline: 1px solid blue; */
 
   overflow: visible; /* Prevent SVG from being cut part way */
-  pointer-events: none; /* Allow player to click board where SVG are overlayed */ 
+  pointer-events: none; /* Allow player to click board where SVG are overlayed */  
 }
 
 .svg-drawing {
@@ -66,6 +66,11 @@
   /* outline: 1px solid red; */
   width: 100%;
   height: 25%;
+  pointer-events: all; /* should be the only clickable thing in layer above board */
+}
+
+.promo-img:hover {
+  background: dodgerblue;
 }
 
 .graveyard {

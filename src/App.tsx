@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
-import { selectPiece, isMove, isCapture } from './game-logic';
+import { selectPiece, isMove, isCapture, isPawnPromo } from './game-logic';
 
 
 interface TileProps {
@@ -68,6 +68,8 @@ interface SVGLayerProps {
   curSelect: [number, number];
   curMoves: [number, number][];
   lastMove: [string, number, number, number, number]; // prev r and c, new r and c
+  pawnPromo: boolean;
+  clickPromo: Function;
 }
 
 const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD rename SVGLayer, now it isn't just SVG
@@ -76,15 +78,18 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
   const [piece, oldR, oldC, newR, newC] = props.lastMove;
   const [tileDim, halfTileDim] = [width / 8, width / 16];
 
-  // piece promotion box reference
+  // pawn promotion box
   const shade = piece.charAt(1);
   const promos: string[] = 
     (shade == "l") ? ["ql", "rl", "bl", "nl"] : ["nd", "bd", "rd", "qd"];
-  let promosStyle = (shade == "l") ? {"top": "0px", "left": tileDim * newC} : 
-    {"bottom": "0px", "left": tileDim * newC};
+  let promosStyle = (shade == "l") ? {"top": "0px", "left": (tileDim * newC)} : 
+    {"bottom": "0px", "left": (tileDim * newC)}; 
 
+  function handleClick(piece: string) {
+    props.clickPromo(piece);
+  }
 
-  // coords for selected piece ricle
+  // coords for selected piece circle
   const [cx, cy] = [halfTileDim + selC * tileDim, halfTileDim + selR * tileDim];
 
   // coords for line showing latest move
@@ -94,12 +99,14 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
   return (
     <div className="svg-layer" 
     style={{"top": `${top}px`, "left": `${left}px`}}>
-      <div className="pawn-promotion" style={promosStyle}>
-        {promos.map((piece, i) =>
-          <img key={i} className="promo-img" 
-          src={require(`./images/${piece}.png`)} />
-        )}
-      </div>
+      {props.pawnPromo &&
+        <div className="pawn-promotion" style={promosStyle}>
+          {promos.map((piece, i) =>
+            <img key={i} className="promo-img" onClick={() => handleClick(piece)}
+            src={require(`./images/${piece}.png`)} />
+          )}
+        </div>
+      }
       <svg className="svg-box">
         {oldR != -1 &&
           <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
@@ -177,6 +184,7 @@ function App() {
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
+  const [pawnPromo, setPawnPromo] = useState<boolean>(false);
 
   // Where UI and game logic meet
   function clickTile(r: number, c: number): number {
@@ -184,6 +192,11 @@ function App() {
     //   return -1;
     // }
     // Gonna control dark pieces for now for testing
+
+    // Pause any new piece selection or move making until pawn promoted
+    if (pawnPromo) {
+      return -1;
+    }
 
     if (isMove(r, c, curMoves)) {
       const [rSel, cSel] = curSelect;
@@ -211,6 +224,13 @@ function App() {
 
       setCurSelect([-1, -1]);
       setCurMoves([]);
+
+      // PAWN PROMOTION logic here!
+      if (isPawnPromo(curBoard[r][c], r)) {
+        setPawnPromo(true);
+        return 0;
+      }
+
       setLightTurn(!lightTurn);
       return 0;
     }
@@ -223,6 +243,21 @@ function App() {
       setCurSelect([-1, -1]); // TEMP
     }
     setCurMoves(moves);
+    return 0;
+  }
+
+  // assert only called when last move was a pawn reaching other end
+  function clickPromo(promoPiece: string) {
+    const [pawn, r1, c1, r2, c2]: [string, number, number, number, number] = 
+      moveHistory[moveHistory.length-1];
+    
+    let newBoard = curBoard.slice();
+    newBoard[r2][c2] = promoPiece;
+    setCurBoard(newBoard);
+    
+    // TBD -- once log format decided, log the promo
+    setLightTurn(!lightTurn);
+    setPawnPromo(false);
     return 0;
   }
 
@@ -242,7 +277,8 @@ function App() {
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
-        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : ["*l", -1, -1, -1, -1]} />
+        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : ["*l", -1, -1, -1, -1]} 
+        pawnPromo={pawnPromo} clickPromo={clickPromo}/>
         <Graveyard pieces={darkGraveyard} />
         
       </div>
