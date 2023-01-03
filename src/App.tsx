@@ -102,7 +102,8 @@ const SVGLayer: FC<SVGLayerProps> = (props) => {                      // TBD ren
       {props.pawnPromo &&
         <div className="pawn-promotion" style={promosStyle}>
           {promos.map((piece, i) =>
-            <img key={i} className="promo-img" onClick={() => handleClick(piece)}
+            <img key={i} className="promo-img" 
+            onClick={() => handleClick(piece)}
             src={require(`./images/${piece}.png`)} />
           )}
         </div>
@@ -277,7 +278,7 @@ function App() {
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
-        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] : 
+        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] :
           ["*l", -1, -1, -1, -1]} 
         pawnPromo={pawnPromo} clickPromo={clickPromo}/>
         <Graveyard pieces={darkGraveyard} />

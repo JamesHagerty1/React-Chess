@@ -62,16 +62,22 @@ function legalMoves(r: number, c: number, board: string[][],
   const [piece, shade]: [string, string] = 
     [board[r][c].charAt(0), board[r][c].charAt(1)];
   const captureShade: string = (shade == "l") ? "d" : "l";
-
   switch (piece) {
     case "p":
       return pawnMoves(r, c, board, shade, captureShade, lastMove);
+    case "r":
+      return rookMoves(r, c, board, shade);
     case "n":
       return knightMoves(r, c, board, shade);
     default:
       console.log("TBD");
       return [];
   }
+}
+
+
+function onBoard(r: number, c: number): boolean {
+  return 0 <= r && r < 8 && 0 <= c && c < 8;
 }
 
 
@@ -87,7 +93,6 @@ function isEnPassant(rDest: number, cDest: number, board: string[][],
     piece.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
   const rBehind: number = (captureShade == "l") ? rDest - 1 : rDest + 1;
   const pawnBehind: boolean = (rBehind == r2 && cDest == c2);
-
   return blankDest && pawnMovedTwo && pawnBehind;
 }
 
@@ -97,38 +102,59 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string,
   captureShade: string,
   lastMove: [string, number, number, number, number]): [number, number][] {
   let moves: [number, number][] = [];
-
-  // forward 1
+  // forward 
   const rF1 = (shade == "l") ? r - 1 : r + 1;
-  if (0 <= rF1 && rF1 < 8 && board[rF1][c] == "_") {
+  if (onBoard(rF1, c) && board[rF1][c] == "_") {
     moves.push([rF1, c]);
   }
-  // forward 2
   const rF2 = (shade == "l") ? r - 2: r + 2;
-  if (0 <= rF2 && rF2 < 8 && board[rF1][c] == "_" && board[rF2][c] == "_" &&
+  if (onBoard(rF2, c) && board[rF1][c] == "_" && board[rF2][c] == "_" &&
     ((shade == "l" && r == 6) || (shade == "d" && r == 1))) {
     moves.push([rF2, c]);
   }
   // conventional diagonal captures
   const [cL, cR] = [c - 1, c + 1];
-  if (0 <= cL && cL < 8 && 0 <= rF1 && rF1 < 8 && board[rF1][cL].length > 1 &&
+  if (onBoard(rF1, cL) && board[rF1][cL].length > 1 &&
     board[rF1][cL].charAt(1) == captureShade) {
     moves.push([rF1, cL]);
   }
-  if (0 <= cR && cR < 8 && 0 <= rF1 && rF1 < 8 && board[rF1][cR].length > 1 &&
+  if (onBoard(rF1, cR) && board[rF1][cR].length > 1 &&
     board[rF1][cR].charAt(1) == captureShade) {
     moves.push([rF1, cR]);
   }
   // en passant captures
-  if (0 <= cL && cL < 8 && 0 <= rF1 && rF1 < 8 && 
-    isEnPassant(rF1, cL, board, captureShade, lastMove)) {
+  if (onBoard(rF1, cL) && isEnPassant(rF1, cL, board, captureShade, lastMove)) {
     moves.push([rF1, cL]);
   }
-  if (0 <= cR && cR < 8 && 0 <= rF1 && rF1 < 8 &&
-    isEnPassant(rF1, cR, board, captureShade, lastMove)) {
+  if (onBoard(rF1, cR) && isEnPassant(rF1, cR, board, captureShade, lastMove)) {
     moves.push([rF1, cR]);
   }
+  return moves;
+}
 
+
+// assert rook of shade at board[r][c]
+function rookMoves(r: number, c: number, board: string[][], shade: string): 
+  [number, number][] {
+  let moves: [number, number][] = [];
+  // (up, right, down, left), 3 arrs align
+  let candidateMoves = [[r, c], [r, c], [r, c], [r, c]];
+  const moveBy = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+  let validDir = [true, true, true, true];
+  while (validDir.includes(true)) {
+    for (let i = 0; i < candidateMoves.length; i++) {
+      let [rCan, cCan] = candidateMoves[i];
+      let [rMov, cMov] = moveBy[i];
+      candidateMoves[i] = [rCan, cCan] = [rCan + rMov, cCan + cMov];
+      if (validDir[i] && onBoard(rCan, cCan) && 
+        !board[rCan][cCan].endsWith(shade)) {
+        moves.push([rCan, cCan]);
+      } 
+      if (!onBoard(rCan, cCan) || board[rCan][cCan] != "_") {
+        validDir[i] = false;
+      }
+    }
+  }
   return moves;
 }
 
@@ -136,14 +162,13 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string,
 // assert knight of shade at board[r][c]
 function knightMoves(r: number, c: number, board: string[][], shade: string): 
   [number, number][] {
-  let candidateMoves: [number, number][] = [
+  let candidateMoves = [
     [r - 1, c - 2], [r - 2, c - 1], [r - 2, c + 1], [r - 1, c + 2],
     [r + 1, c - 2], [r + 2, c - 1], [r + 2, c + 1], [r + 1, c + 2]];
   let moves: [number, number][] = [];
   for (let i in candidateMoves) {
     const [rCan, cCan] = candidateMoves[i];
-    if (0 <= rCan && rCan < 8 && 0 <= cCan && cCan < 8 &&
-      !board[rCan][cCan].endsWith(shade)) {
+    if (onBoard(rCan, cCan) && !board[rCan][cCan].endsWith(shade)) {
       moves.push([rCan, cCan]);
     }
   }
