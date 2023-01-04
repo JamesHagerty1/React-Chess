@@ -4,6 +4,7 @@ var lastMove_: [string, number, number, number, number] = ["", -1, -1, -1, -1];
 var castleRef_: boolean[] = [];
 var attackableTiles_: Set<string> = new Set();
 
+
 /* App helpers ****************************************************************/
 
 
@@ -137,7 +138,7 @@ function checkableMove(r1: number, c1: number, r2: number, c2: number):
     getAttackableTiles(captureShade);
   const [rKing, cKing] = findKing(shade);
   board_ = saveBoard;
-  
+
   return attackableTiles.has(`${rKing}-${cKing}`);
 }
 
@@ -212,8 +213,8 @@ function kingMoves(r: number, c: number, shade: string): [number, number][] {
   if (shade == "l") {
     // light left castle
     const leftUnmoved: boolean = castleRef_[3] && castleRef_[4];
-    const leftBlank: boolean = ((board_[7][1] == "_") && (board_[7][2] == "_") && 
-      (board_[7][3] == "_"));
+    const leftBlank: boolean = ((board_[7][1] == "_") && 
+      (board_[7][2] == "_") && (board_[7][3] == "_"));
     const leftNotAttacked: boolean = (!attackableTiles_.has("7-1") && 
       !attackableTiles_.has("7-2") && !attackableTiles_.has("7-3"));
     if (leftUnmoved && leftBlank && leftNotAttacked) {
@@ -230,8 +231,8 @@ function kingMoves(r: number, c: number, shade: string): [number, number][] {
   } else if (shade == "d") {
     // dark left castle
     const leftUnmoved: boolean = castleRef_[0] && castleRef_[1];
-    const leftBlank: boolean = ((board_[0][1] == "_") && (board_[0][2] == "_") && 
-      (board_[0][3] == "_"));
+    const leftBlank: boolean = ((board_[0][1] == "_") && 
+      (board_[0][2] == "_") && (board_[0][3] == "_"));
     const leftNotAttacked: boolean = (!attackableTiles_.has("0-1") && 
       !attackableTiles_.has("0-2") && !attackableTiles_.has("0-3"));
     if (leftUnmoved && leftBlank && leftNotAttacked) {
