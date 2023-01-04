@@ -6,6 +6,7 @@ import {getMoves} from "./game-logic";
 interface BoardProps {
   board: string[][];
   selected: [number, number];
+  selectedMoves: string[];
   clickTile: Function;
 }
 const Board: FC<BoardProps> = (props) => {
@@ -25,7 +26,6 @@ const Board: FC<BoardProps> = (props) => {
     onResize(); 
     window.addEventListener("resize", onResize);
   }, []);
-
   return (
     <div>
       <div className="board" ref={boardRef}>
@@ -51,6 +51,12 @@ const Board: FC<BoardProps> = (props) => {
           r={width / 16} stroke="dodgerblue" fill="none"
           strokeWidth="3" />
         }
+        {props.selectedMoves.map((tileId, i) =>
+          <circle key={i} className="svg-drawing" 
+          cx={Number(tileId.charAt(1)) * (width / 8) + (width / 16)} 
+          cy={Number(tileId.charAt(0)) * (width / 8) + (width / 16)} 
+          r={width / 48} fill="dodgerblue" />
+        )}
         </svg>
       </div>
     </div>
@@ -72,6 +78,7 @@ function App() {
   const [moves, setMoves] = useState<{[key: string]: string[]}>(
     getMoves(board, turn));
   const [selected, setSelected] = useState<[number, number]>([-1, -1]);
+  const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
 
   function clickTile(r: number, c: number) {
     console.log(r, c);
@@ -82,12 +89,14 @@ function App() {
     // Select a piece
     if (board[r][c].endsWith(turn)) {
       setSelected([r, c]);
+      setSelectedMoves(moves[`${r}${c}`]);
     }
   }
 
   return (
     <div className="flex-container">
-      <Board board={board} selected={selected} clickTile={clickTile}/>
+      <Board board={board} selected={selected} selectedMoves={selectedMoves} 
+      clickTile={clickTile}/>
     </div>
   );
 }
