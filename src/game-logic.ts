@@ -63,19 +63,44 @@ function legalMoves(r: number, c: number, board: string[][],
     [board[r][c].charAt(0), board[r][c].charAt(1)];
   const captureShade: string = (shade == "l") ? "d" : "l";
   switch (piece) {
+    case "k":
+      let moves = kingMoves(r, c, board, shade);
+      splitChecks(r, c, board, moves);
+      return moves;
     case "p":
       return pawnMoves(r, c, board, shade, captureShade, lastMove);
     case "r":
       return rookMoves(r, c, board, shade);
-    case "n":
-      return knightMoves(r, c, board, shade);
     case "b":
       return bishopMoves(r, c, board, shade);
     case "q":
       return queenMoves(r, c, board, shade);
+    case "n":
+      return knightMoves(r, c, board, shade);
     default:
       return [];
   }
+}
+
+
+// assert knight of shade at board[r][c]
+function kingMoves(r: number, c: number, board: string[][], shade: string): 
+  [number, number][] {
+  let moves: [number, number][] = [];
+  let candidateMoves = [
+    [r - 1, c], [r, c + 1], [r + 1, c], [r, c - 1],
+    [r - 1, c - 1], [r - 1, c + 1], [r + 1, c + 1], [r + 1, c - 1]];
+  for (let i in candidateMoves) {
+    const [rCan, cCan] = candidateMoves[i];
+    if (onBoard(rCan, cCan) && !board[rCan][cCan].endsWith(shade)) {
+      moves.push([rCan, cCan]);
+    }
+  }
+  // castling
+  // left 2 king right 3 rook when: 
+  // left rook and king never moved, (TBD ..., do check logic first)
+
+  return moves;
 }
 
 
@@ -136,23 +161,6 @@ function pawnMoves(r: number, c: number, board: string[][], shade: string,
 }
 
 
-// assert knight of shade at board[r][c]
-function knightMoves(r: number, c: number, board: string[][], shade: string): 
-  [number, number][] {
-  let candidateMoves = [
-    [r - 1, c - 2], [r - 2, c - 1], [r - 2, c + 1], [r - 1, c + 2],
-    [r + 1, c - 2], [r + 2, c - 1], [r + 2, c + 1], [r + 1, c + 2]];
-  let moves: [number, number][] = [];
-  for (let i in candidateMoves) {
-    const [rCan, cCan] = candidateMoves[i];
-    if (onBoard(rCan, cCan) && !board[rCan][cCan].endsWith(shade)) {
-      moves.push([rCan, cCan]);
-    }
-  }
-  return moves;
-}
-
-
 // generalizes for rook, bishop, and queen!
 function fanOutMoves(r: number, c: number, board: string[][], shade: string,
   moveBy: [number, number][]): [number, number][] {
@@ -198,4 +206,32 @@ function queenMoves(r: number, c: number, board: string[][], shade: string):
   const moveBy: [number, number][] = 
     [[-1, 0], [0, 1], [1, 0], [0, -1], [-1, -1], [-1, 1], [1, 1], [1, -1]];
   return fanOutMoves(r, c, board, shade, moveBy);
+}
+
+
+// assert knight of shade at board[r][c]
+function knightMoves(r: number, c: number, board: string[][], shade: string): 
+  [number, number][] {
+  let moves: [number, number][] = [];
+  let candidateMoves = [
+    [r - 1, c - 2], [r - 2, c - 1], [r - 2, c + 1], [r - 1, c + 2],
+    [r + 1, c - 2], [r + 2, c - 1], [r + 2, c + 1], [r + 1, c + 2]];
+  for (let i in candidateMoves) {
+    const [rCan, cCan] = candidateMoves[i];
+    if (onBoard(rCan, cCan) && !board[rCan][cCan].endsWith(shade)) {
+      moves.push([rCan, cCan]);
+    }
+  }
+  return moves;
+}
+
+
+function splitChecks(r: number, c: number, board: string[][], 
+  moves: [number, number][]): [[number, number][], [number, number][]] {
+  let tup: [[number, number][], [number, number][]]  = [[], []];
+  console.log("splitChecks");
+
+  
+
+  return tup;
 }
