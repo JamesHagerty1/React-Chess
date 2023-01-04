@@ -224,7 +224,9 @@ function App() {
       newBoard[rSel][cSel] = "_";
       setCurBoard(newBoard);
 
-      newMoveHistory.push([curBoard[r][c], rSel, cSel, r, c]);
+      let newMove: [string, number, number, number, number] = 
+        [curBoard[r][c], rSel, cSel, r, c];
+      newMoveHistory.push(newMove);
       setMoveHistory(newMoveHistory);
 
       setCurSelect([-1, -1]);
@@ -236,13 +238,12 @@ function App() {
         return 0;
       }
 
-      changeTurn();
+      changeTurn(newMove);
       return 0;
     }
 
     // Select a piece
     let tileKey: string = `${r}-${c}`;
-    console.log(tileKey);
     if (curBoard[r][c].endsWith(turn)) {
       setCurSelect([r, c]);
       setCurMoves(curLegalMoves[tileKey]);
@@ -261,21 +262,19 @@ function App() {
     setCurBoard(newBoard);
 
     // TBD -- once log format decided, log the promo
-    changeTurn();
+    changeTurn([pawn, r1, c1, r2, c2]);
     setPawnPromo(false);
     return 0;
   }
 
-  function changeTurn() {
-    console.log("changeTurn");
+  function changeTurn(lastMove: [string, number, number, number, number]) {
     const newTurn = (turn == "l") ? "d" : "l";
     setTurn(newTurn);
     const [legalMoves, checkableMoves]: 
       [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
-      = allMoves(newTurn, curBoard, moveHistory[moveHistory.length-1]);
+      = allMoves(newTurn, curBoard, lastMove);
     setCurLegalMoves(legalMoves);
     setCurCheckableMoves(checkableMoves);
-    console.log(curLegalMoves);
   }
 
   // State for SVG drawing logic
@@ -294,8 +293,8 @@ function App() {
         <Board curBoard={curBoard} tileDim={dims[2] / 8} newDims={newDims} 
         clickTile={clickTile} />
         <SVGLayer dims={dims} curSelect={curSelect} curMoves={curMoves} 
-        lastMove={(moveHistory.length > 0) ? moveHistory[moveHistory.length-1] :
-          ["*l", -1, -1, -1, -1]} 
+        lastMove={(moveHistory.length > 0) ? 
+          moveHistory[moveHistory.length - 1] : ["*l", -1, -1, -1, -1]} 
         pawnPromo={pawnPromo} clickPromo={clickPromo}/>
         <Graveyard pieces={darkGraveyard} />
         

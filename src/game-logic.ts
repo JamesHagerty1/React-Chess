@@ -45,10 +45,6 @@ export function isPawnPromo(piece: string, r: number): boolean {
 export function allMoves(shade: string, board: string[][],
   lastMove: [string, number, number, number, number]): 
   [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}] {
-
-  console.log("allMoves()");
-  console.log(shade);
-
   const legalMovesDict: {[key: string]: [number, number][]} = {};
   const checkableMovesDict: {[key: string]: [number, number][]} = {};
   for (let r = 0; r < 8; r++) {
