@@ -1,5 +1,6 @@
-import React, { FC, useState, useRef } from "react";
+import React, {FC, useState, useRef} from "react";
 import "./index.css";
+import {getMoves} from "./game-logic";
 
 
 interface BoardProps {
@@ -27,18 +28,23 @@ const Board: FC<BoardProps> = (props) => {
 
 function App() {
   const [board, setBoard] = useState<string[][]>([
-      ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
-      ["pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd"],
-      ["_", "_", "_", "_", "_", "_", "_", "_"],    
-      ["_", "_", "_", "_", "_", "_", "_", "_"],
-      ["_", "_", "_", "_", "_", "_", "_", "_"],
-      ["_", "_", "_", "_", "_", "_", "_", "_"],
-      ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
-      ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]
-  ]);
+    ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
+    ["pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],    
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["_", "_", "_", "_", "_", "_", "_", "_"],
+    ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
+    ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]]);
+  const [turn, setTurn] = useState<string>("l");
+  const [moves, setMoves] = useState<{[key: string]: string[]}>(
+    getMoves(board, turn));
 
   function clickTile(r: number, c: number) {
     console.log(r, c);
+    // if valid select, select piece -> list possible moves
+    // else if selected valid move -> make move
+    // else do nothing
   }
 
   return (
