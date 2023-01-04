@@ -1,6 +1,6 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
-import {getMoves} from "./game-logic";
+import {getMoves, makeMove} from "./game-logic";
 
 
 interface BoardProps {
@@ -10,6 +10,8 @@ interface BoardProps {
   clickTile: Function;
 }
 const Board: FC<BoardProps> = (props) => {
+  // State and effects are to keep track of board dimensions, which help
+  // calculate how to draw the board annotations
   const [leftOffset, setLeftOffset] = useState<number>(-1);
   const [topOffset, setTopOffset] = useState<number>(-1);
   const [width, setWidth] = useState<number>(-1);
@@ -55,7 +57,7 @@ const Board: FC<BoardProps> = (props) => {
           <circle key={i} className="svg-drawing" 
           cx={Number(tileId.charAt(1)) * (width / 8) + (width / 16)} 
           cy={Number(tileId.charAt(0)) * (width / 8) + (width / 16)} 
-          r={width / 48} fill="dodgerblue" />
+          r={width / 64} fill="dodgerblue" />
         )}
         </svg>
       </div>
@@ -81,15 +83,23 @@ function App() {
   const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
 
   function clickTile(r: number, c: number) {
-    console.log(r, c);
     // if valid select, select piece -> list possible moves
     // else if selected valid move -> make move
     // else do nothing
 
-    // Select a piece
-    if (board[r][c].endsWith(turn)) {
+    if (board[r][c].endsWith(turn)) { // Select a piece
       setSelected([r, c]);
       setSelectedMoves(moves[`${r}${c}`]);
+    } else if (selectedMoves.includes(`${r}${c}`)) { // Make a move
+      let newBoard: string[][] = 
+        makeMove(selected[0], selected[1], r, c, board.slice())
+      let newTurn = (turn == "l") ? "d" : "l";
+      setBoard(newBoard);
+      setSelected([-1, -1]);
+      setSelectedMoves([]);
+      // transition to next player's turn
+      setTurn(newTurn);
+      setMoves(getMoves(newBoard, newTurn));
     }
   }
 

@@ -20,7 +20,6 @@ export function getMoves(board: string[][], turn: string):
         }
       }
     }
-    console.log(moves);
     return moves;
 }
 
@@ -40,7 +39,7 @@ function legalMoves(r: number, c: number, board: string[][], tiles: string[],
 }
 
 
-function makeMove(r1: number, c1: number, r2: number, c2: number, 
+export function makeMove(r1: number, c1: number, r2: number, c2: number, 
   board: string[][]): string[][] {
   board[r2][c2] = board[r1][c1];
   board[r1][c1] = "_";
@@ -65,14 +64,14 @@ function canCheck(board: string[][], turn: string) {
 }
 
 
-function attackedTile(r: number, c: number, board: string[][], 
+function attackedTile(rAtt: number, cAtt: number, board: string[][], 
   opponent: string): boolean {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c].endsWith(opponent)) {
         const pieceId = board[r][c];
         let tiles: string[] = reach[pieceId.charAt(0)](r, c, board, opponent);
-        if (tiles.includes(`${r}${c}`)) {
+        if (tiles.includes(`${rAtt}${cAtt}`)) {
           return true;
         }
       }
