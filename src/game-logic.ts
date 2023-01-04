@@ -1,23 +1,11 @@
 /* App helpers ****************************************************************/
 
 
-// need to know lastMove for en passant pawn legal move check
-export function selectPiece (r: number, c: number, board: string[][], 
-  lightTurn: boolean, lastMove: [string, number, number, number, number]): 
-  [boolean, [number, number][]] {
- let shade: string = (lightTurn) ? "l" : "d";
- if (shade == board[r][c].charAt(1)) { 
-  return [true, legalMoves(r, c, board, lastMove)];
- } 
- return [false, []];
-} // return legal moves when applicable
-
-
 // TS seems to not have built in fn for checking if list contains tuple
-export function isMove(r: number, c: number, curMoves: [number, number][]): 
+export function containsRc(r: number, c: number, tiles: [number, number][]): 
   boolean {
-  for (let i in curMoves) {
-    const [rMove, cMove] = curMoves[i];
+  for (let i in tiles) {
+    const [rMove, cMove] = tiles[i];
     if (r == rMove && c == cMove) {
       return true;
     }
@@ -54,54 +42,15 @@ export function isPawnPromo(piece: string, r: number): boolean {
 }
 
 
-/* File contained helpers *****************************************************/
-
-
-function legalMoves(r: number, c: number, board: string[][],
-  lastMove: [string, number, number, number, number]): [number, number][] {
-  const [piece, shade]: [string, string] = 
-    [board[r][c].charAt(0), board[r][c].charAt(1)];
-  const captureShade: string = (shade == "l") ? "d" : "l";
-
-  // TEMP TEST
-  replaceLegalMoves("l", board, lastMove);
-
-  switch (piece) {
-    case "k":
-      let moves = kingMoves(r, c, board, shade);
-
-      return moves;
-    case "p":
-      return pawnMoves(r, c, board, shade, lastMove);
-    case "r":
-      return rookMoves(r, c, board, shade);
-    case "b":
-      return bishopMoves(r, c, board, shade);
-    case "q":
-      return queenMoves(r, c, board, shade);
-    case "n":
-      return knightMoves(r, c, board, shade);
-    default:
-      return [];
-  }
-}
-
-
-function replaceLegalMoves(shade: string, board: string[][],
+export function allMoves(shade: string, board: string[][],
   lastMove: [string, number, number, number, number]): 
   [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}] {
 
-  // return dict[ "r-c" ] -> ([[y0, x0],...,[yn, xn]], " but for illegal moves)
-  // for r-c in board, if board[r-c]==shade:
-  // collect relevant *Moves (similar switch as above)
-  // for the moves of r-c:
-  // create a mock board, throw it to a fn seeing if shade king under attack
-  // if no, put in arr of legal moves, if yes put in arr of illegal moves
-  // map them
+  console.log("allMoves()");
+  console.log(shade);
 
   const legalMovesDict: {[key: string]: [number, number][]} = {};
   const checkableMovesDict: {[key: string]: [number, number][]} = {};
-
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (!board[r][c].endsWith(shade)) {
@@ -133,10 +82,91 @@ function replaceLegalMoves(shade: string, board: string[][],
       }
       let legalMoves: [number, number][] = [];
       let checkableMoves: [number, number][] = [];
+      for (let i in moves) {
+        const [rMove, cMove] = moves[i];
+        if (checkableMove(r, c, rMove, cMove, board, lastMove)) {
+          checkableMoves.push([rMove, cMove]);
+        } else {
+          legalMoves.push([rMove, cMove]);
+        }
+      }
+      legalMovesDict[`${r}-${c}`] = legalMoves;
+      checkableMovesDict[`${r}-${c}`] = checkableMoves;
     }
   }
-  
   return [legalMovesDict, checkableMovesDict];
+}
+
+
+/* File contained helpers *****************************************************/
+
+
+function checkableMove(r1: number, c1: number, r2: number, c2: number,
+  board: string[][], lastMove: [string, number, number, number, number]): 
+  boolean {
+  const shade: string = (board[r1][c1].endsWith("l")) ? "l" : "d";
+  const captureShade: string = (shade == "l") ? "d" : "l";
+  const [capture, rcCap]: [boolean, [number, number]] = 
+    isCapture(r1, c1, r2, c2, board, lastMove);
+  let tryBoard = board.map(item => {return {...item}}); // js deepcopy
+  if (capture) {
+    const [rCap, cCap] = rcCap;
+    tryBoard[rCap][cCap] = "_";
+  }
+  tryBoard[r2][c2] = board[r1][c1];
+  tryBoard[r1][c1] = "_";
+  const opponentAccessibleTiles: [number, number][] =
+    getAccessibleTiles(captureShade, tryBoard, lastMove);
+  const [rKing, cKing] = findKing(shade, tryBoard);
+  return containsRc(rKing, cKing, opponentAccessibleTiles);
+}
+
+
+function getAccessibleTiles(shade: string, board: string[][],
+  lastMove: [string, number, number, number, number]): [number, number][] {
+  let moves: [number, number][] = [];
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (!board[r][c].endsWith(shade)) {
+        continue;
+      }
+      const piece = board[r][c].charAt(0);
+      switch (piece) {
+        case "k":
+          moves = moves.concat(kingMoves(r, c, board, shade));
+          break;
+        case "p":
+          moves = moves.concat(pawnMoves(r, c, board, shade, lastMove));
+          break;
+        case "r":
+          moves = moves.concat(rookMoves(r, c, board, shade));
+          break;
+        case "b":
+          moves = moves.concat(bishopMoves(r, c, board, shade));
+          break;
+        case "q":
+          moves = moves.concat(queenMoves(r, c, board, shade));
+          break;
+        case "n":
+          moves = moves.concat(knightMoves(r, c, board, shade));
+          break;
+      }
+    }
+  }
+  return moves;
+} 
+
+
+function findKing(shade: string, board: string[][]): [number, number] {
+  const king = `k${shade}`;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] == king) {
+        return [r, c]
+      }
+    }
+  }
+  return [-1, -1];
 }
 
 

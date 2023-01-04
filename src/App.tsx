@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import "./index.css";
-import { selectPiece, isMove, isCapture, isPawnPromo } from './game-logic';
+import { allMoves, containsRc, isCapture, isPawnPromo } from './game-logic';
 
 
 interface TileProps {
@@ -177,29 +177,32 @@ function App() {
   ];
   let graveyard: string[] = [];
 
+  const [turn, setTurn] = useState<string>("l");
+  const [legalMoves, checkableMoves]: 
+    [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
+    = allMoves("l", startBoard, ["*l", -1, -1, -1, -1]);
+  const [curLegalMoves, setCurLegalMoves] =
+    useState<{[key: string]: [number, number][]}>(legalMoves);  
+  const [curCheckableMoves, setCurCheckableMoves] =
+    useState<{[key: string]: [number, number][]}>(checkableMoves);
+  const [curMoves, setCurMoves] = useState<[number, number][]>([]);
+  
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
   const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
-  const [lightTurn, setLightTurn] = useState<boolean>(true);
   const [curSelect, setCurSelect] = useState<[number, number]>([-1, -1]);
-  const [curMoves, setCurMoves] = useState<[number, number][]>([]);
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
 
   // Where UI and game logic meet
   function clickTile(r: number, c: number): number {
-    // if (!lightTurn) {
-    //   return -1;
-    // }
-    // Gonna control dark pieces for now for testing
-
-    // Pause any new piece selection or move making until pawn promoted
     if (pawnPromo) {
-      return -1;
+      return 0;
     }
 
-    if (isMove(r, c, curMoves)) {
+    // Make a move
+    if (containsRc(r, c, curMoves)) {
       const [rSel, cSel] = curSelect;
       let newBoard = curBoard.slice();
       const [capture, rcCap]: [boolean, [number, number]] = 
@@ -207,12 +210,13 @@ function App() {
           moveHistory[moveHistory.length - 1]);
       let newMoveHistory = moveHistory.slice();
 
+      // redraw board
       if (capture) {
         let newGraveyard = 
-          lightTurn ? darkGraveyard.slice() : lightGraveyard.slice();
+          (turn == "l") ? darkGraveyard.slice() : lightGraveyard.slice();
         const [rCap, cCap] = rcCap;
         newGraveyard.push(curBoard[rCap][cCap]);
-        lightTurn ? 
+        (turn == "l") ? 
           setDarkGraveyard(newGraveyard) : setLightGraveyard(newGraveyard);
         newBoard[rCap][cCap] = "_";
       }
@@ -232,20 +236,20 @@ function App() {
         return 0;
       }
 
-      setLightTurn(!lightTurn);
+      changeTurn();
       return 0;
     }
 
-    const [legalSelect, moves]: [boolean, [number, number][]] = 
-      selectPiece(r, c, curBoard, lightTurn, moveHistory[moveHistory.length-1]);
-    if (legalSelect) {
-      setCurSelect([r, c]); // SELECTION DRAWING TBD
-    } else {
-      setCurSelect([-1, -1]); // TEMP
+    // Select a piece
+    let tileKey: string = `${r}-${c}`;
+    console.log(tileKey);
+    if (curBoard[r][c].endsWith(turn)) {
+      setCurSelect([r, c]);
+      setCurMoves(curLegalMoves[tileKey]);
     }
-    setCurMoves(moves);
     return 0;
   }
+
 
   // assert only called when last move was a pawn reaching other end
   function clickPromo(promoPiece: string) {
@@ -257,9 +261,21 @@ function App() {
     setCurBoard(newBoard);
 
     // TBD -- once log format decided, log the promo
-    setLightTurn(!lightTurn);
+    changeTurn();
     setPawnPromo(false);
     return 0;
+  }
+
+  function changeTurn() {
+    console.log("changeTurn");
+    const newTurn = (turn == "l") ? "d" : "l";
+    setTurn(newTurn);
+    const [legalMoves, checkableMoves]: 
+      [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
+      = allMoves(newTurn, curBoard, moveHistory[moveHistory.length-1]);
+    setCurLegalMoves(legalMoves);
+    setCurCheckableMoves(checkableMoves);
+    console.log(curLegalMoves);
   }
 
   // State for SVG drawing logic
