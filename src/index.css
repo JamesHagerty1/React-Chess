@@ -28,3 +28,17 @@
   width: 100%;
   height: 100%; 
 }
+
+.board-annotations {
+  width: 80vmin; /* Always overlays .board */
+  height: 80vmin;
+  position: absolute;
+  pointer-events: none; /* Allow player to click board where SVG are overlayed */
+}
+.svg-container {
+  overflow: visible; /* Prevent SVG from being cut part way */
+  pointer-events: none; /* Allow player to click board where SVG are overlayed */
+}
+.svg-drawing {
+  pointer-events: none; /* Allow player to click board where SVG are overlayed */
+}
