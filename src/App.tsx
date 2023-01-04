@@ -177,16 +177,7 @@ function App() {
   ];
   let graveyard: string[] = [];
 
-  const [turn, setTurn] = useState<string>("l");
-  const [legalMoves, checkableMoves]: 
-    [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
-    = allMoves("l", startBoard, ["*l", -1, -1, -1, -1]);
-  const [curLegalMoves, setCurLegalMoves] =
-    useState<{[key: string]: [number, number][]}>(legalMoves);  
-  const [curCheckableMoves, setCurCheckableMoves] =
-    useState<{[key: string]: [number, number][]}>(checkableMoves);
   const [curMoves, setCurMoves] = useState<[number, number][]>([]);
-  
   const [curBoard, setCurBoard] = useState<string[][]>(startBoard);
   const [darkGraveyard, setDarkGraveyard] = useState<string[]>(graveyard);
   const [lightGraveyard, setLightGraveyard] = useState<string[]>(graveyard);
@@ -194,6 +185,18 @@ function App() {
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
+  // castleRef true means no move yet from: 
+  // [rd (0, 0), kd (0, 4), rd (0, 7), rl (7, 0), kl, (7, 4), rl, (7, 7)]
+  const [castleRef, setCastleRef] = useState<boolean[]>(
+    [true, true, true, true, true, true]);
+    const [turn, setTurn] = useState<string>("l");
+  const [legalMoves, checkableMoves]: 
+    [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
+    = allMoves("l", startBoard, ["*l", -1, -1, -1, -1], castleRef);
+  const [curLegalMoves, setCurLegalMoves] =
+    useState<{[key: string]: [number, number][]}>(legalMoves);  
+  const [curCheckableMoves, setCurCheckableMoves] =
+    useState<{[key: string]: [number, number][]}>(checkableMoves);
 
   // Where UI and game logic meet
   function clickTile(r: number, c: number): number {
@@ -204,6 +207,7 @@ function App() {
     // Make a move
     if (containsRc(r, c, curMoves)) {
       const [rSel, cSel] = curSelect;
+
       let newBoard = curBoard.slice();
       const [capture, rcCap]: [boolean, [number, number]] = 
         isCapture(rSel, cSel, r, c, curBoard, 
@@ -222,6 +226,7 @@ function App() {
       }
       newBoard[r][c] = newBoard[rSel][cSel];
       newBoard[rSel][cSel] = "_";
+      newBoard = castleRook(r, c, Math.abs(cSel - c), newBoard); // TBD special castling log
       setCurBoard(newBoard);
 
       let newMove: [string, number, number, number, number] = 
@@ -231,6 +236,9 @@ function App() {
 
       setCurSelect([-1, -1]);
       setCurMoves([]);
+
+      // Mark first move made to invalidate castling 
+      invalidateCastle(rSel, cSel);
 
       // PAWN PROMOTION logic here!
       if (isPawnPromo(curBoard[r][c], r)) {
@@ -251,6 +259,57 @@ function App() {
     return 0;
   }
 
+  // move the rook after the king castles
+  function castleRook(rKing: number, cKing: number, movedBy: number,
+    newBoard: string[][]) {
+    const king: boolean = (newBoard[rKing][cKing].charAt(0) == "k");
+    if (king && (movedBy == 2)) {
+      switch(`${rKing}-${cKing}`) {
+        case("7-2"):
+          newBoard[7][0] = "_";
+          newBoard[7][3] = "rl";
+          break;
+        case("7-6"):
+          newBoard[7][7] = "_";
+          newBoard[7][5] = "rl";
+          break;
+        case("0-2"):
+          newBoard[0][0] = "_";
+          newBoard[0][3] = "rd";
+          break;
+        case("0-6"):
+          newBoard[0][7] = "_";
+          newBoard[0][5] = "rd";
+          break;
+      }
+    }
+    return newBoard;
+  }
+
+  function invalidateCastle(r: number, c: number) {
+    let newCastleRef = castleRef.slice();
+    switch(`${r}-${c}`) {
+      case "0-0":
+        newCastleRef[0] = false;
+        break;
+      case "0-4":
+        newCastleRef[1] = false;
+        break;
+      case "0-7":
+        newCastleRef[2] = false;
+        break;
+      case "7-0":
+        newCastleRef[3] = false;
+        break;
+      case "7-4":
+        newCastleRef[4] = false;
+        break;
+      case "7-7":
+        newCastleRef[5] = false;
+        break;
+    }
+    setCastleRef(newCastleRef);
+  }
 
   // assert only called when last move was a pawn reaching other end
   function clickPromo(promoPiece: string) {
@@ -272,7 +331,7 @@ function App() {
     setTurn(newTurn);
     const [legalMoves, checkableMoves]: 
       [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}]
-      = allMoves(newTurn, curBoard, lastMove);
+      = allMoves(newTurn, curBoard, lastMove, castleRef);
     setCurLegalMoves(legalMoves);
     setCurCheckableMoves(checkableMoves);
   }

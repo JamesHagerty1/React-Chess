@@ -43,7 +43,7 @@ export function isPawnPromo(piece: string, r: number): boolean {
 
 
 export function allMoves(shade: string, board: string[][],
-  lastMove: [string, number, number, number, number]): 
+  lastMove: [string, number, number, number, number], castleRef: boolean[]): 
   [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}] {
   const legalMovesDict: {[key: string]: [number, number][]} = {};
   const checkableMovesDict: {[key: string]: [number, number][]} = {};
@@ -56,7 +56,7 @@ export function allMoves(shade: string, board: string[][],
       const piece = board[r][c].charAt(0);
       switch (piece) {
         case "k":
-          moves = kingMoves(r, c, board, shade);
+          moves = kingMoves(r, c, board, shade, lastMove, castleRef);
           break;
         case "p":
           moves = pawnMoves(r, c, board, shade, lastMove);
@@ -80,7 +80,7 @@ export function allMoves(shade: string, board: string[][],
       let checkableMoves: [number, number][] = [];
       for (let i in moves) {
         const [rMove, cMove] = moves[i];
-        if (checkableMove(r, c, rMove, cMove, board, lastMove)) {
+        if (checkableMove(r, c, rMove, cMove, board, lastMove, castleRef)) {
           checkableMoves.push([rMove, cMove]);
         } else {
           legalMoves.push([rMove, cMove]);
@@ -98,7 +98,8 @@ export function allMoves(shade: string, board: string[][],
 
 
 function checkableMove(r1: number, c1: number, r2: number, c2: number,
-  board: string[][], lastMove: [string, number, number, number, number]): 
+  board: string[][], lastMove: [string, number, number, number, number],
+  castleRef: boolean[]): 
   boolean {
   const shade: string = (board[r1][c1].endsWith("l")) ? "l" : "d";
   const captureShade: string = (shade == "l") ? "d" : "l";
@@ -111,45 +112,53 @@ function checkableMove(r1: number, c1: number, r2: number, c2: number,
   }
   tryBoard[r2][c2] = board[r1][c1];
   tryBoard[r1][c1] = "_";
-  const opponentAccessibleTiles: [number, number][] =
-    getAccessibleTiles(captureShade, tryBoard, lastMove);
+
+  const attackableTiles: Set<string> =
+    getAttackableTiles(captureShade, tryBoard, lastMove, castleRef);
   const [rKing, cKing] = findKing(shade, tryBoard);
-  return containsRc(rKing, cKing, opponentAccessibleTiles);
+  return attackableTiles.has(`${rKing}-${cKing}`);
 }
 
 
-function getAccessibleTiles(shade: string, board: string[][],
-  lastMove: [string, number, number, number, number]): [number, number][] {
-  let moves: [number, number][] = [];
+// tiles attackable by shade
+function getAttackableTiles(shade: string, board: string[][],
+  lastMove: [string, number, number, number, number], castleRef: boolean[]): 
+  Set<string> {
+  let tiles: Set<string> = new Set();
+  function movesToSet(moves: [number, number][]) {
+    for (let i in moves) {
+      let move: [number, number] = moves[i];
+      tiles.add(`${move[0]}-${move[1]}`);
+    }
+  }
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
-      if (!board[r][c].endsWith(shade)) {
-        continue;
-      }
-      const piece = board[r][c].charAt(0);
-      switch (piece) {
-        case "k":
-          moves = moves.concat(kingMoves(r, c, board, shade));
-          break;
-        case "p":
-          moves = moves.concat(pawnMoves(r, c, board, shade, lastMove));
-          break;
-        case "r":
-          moves = moves.concat(rookMoves(r, c, board, shade));
-          break;
-        case "b":
-          moves = moves.concat(bishopMoves(r, c, board, shade));
-          break;
-        case "q":
-          moves = moves.concat(queenMoves(r, c, board, shade));
-          break;
-        case "n":
-          moves = moves.concat(knightMoves(r, c, board, shade));
-          break;
+      if (board[r][c].endsWith(shade)) {
+        const piece = board[r][c].charAt(0);
+        switch (piece) {
+          case "k":
+            movesToSet(kingMoves(r, c, board, shade, lastMove, castleRef));
+            break;
+          case "p":
+            movesToSet(pawnMoves(r, c, board, shade, lastMove));
+            break;
+          case "r":
+            movesToSet(rookMoves(r, c, board, shade));
+            break;
+          case "b":
+            movesToSet(bishopMoves(r, c, board, shade));
+            break;
+          case "q":
+            movesToSet(queenMoves(r, c, board, shade));
+            break;
+          case "n":
+            movesToSet(knightMoves(r, c, board, shade));
+            break;
+        } 
       }
     }
   }
-  return moves;
+  return tiles;
 } 
 
 
@@ -167,9 +176,11 @@ function findKing(shade: string, board: string[][]): [number, number] {
 
 
 // assert knight of shade at board[r][c]
-function kingMoves(r: number, c: number, board: string[][], shade: string): 
+function kingMoves(r: number, c: number, board: string[][], shade: string,
+  lastMove: [string, number, number, number, number], castleRef: boolean[]): 
   [number, number][] {
   let moves: [number, number][] = [];
+  // conventional moves
   let candidateMoves = [
     [r - 1, c], [r, c + 1], [r + 1, c], [r, c - 1],
     [r - 1, c - 1], [r - 1, c + 1], [r + 1, c + 1], [r + 1, c - 1]];
@@ -180,9 +191,47 @@ function kingMoves(r: number, c: number, board: string[][], shade: string):
     }
   }
   // castling
-  // left 2 king right 3 rook when: 
-  // left rook and king never moved, (TBD ..., do check logic first)
-
+  if (shade == "l") {
+    // const attackableTiles: Set<string> =
+    //   getAttackableTiles("d", board, lastMove, castleRef);
+    // // light left castle
+    // const leftUnmoved: boolean = castleRef[3] && castleRef[4];
+    // const leftBlank: boolean = ((board[7][1] == "_") && (board[7][2] == "_") && 
+    //   (board[7][3] == "_"));
+    // const leftNotAttacked: boolean = (!attackableTiles.has("7-1") && 
+    //   !attackableTiles.has("7-2") && !attackableTiles.has("7-3"));
+    // if (leftUnmoved && leftBlank && leftNotAttacked) {
+    //   moves.push([7, 2]);
+    // }
+    // // light right castle
+    // const rightUnmoved: boolean = castleRef[4] && castleRef[5];
+    // const rightBlank: boolean = (board[7][5] == "_") && (board[7][6] == "_");
+    // const rightNotAttacked: boolean = (!attackableTiles.has("7-5") && 
+    //   !attackableTiles.has("7-6"));
+    // if (rightUnmoved && rightBlank && rightNotAttacked) {
+    //   moves.push([7, 6]);
+    // }
+  } else if (shade == "d") {
+    const attackableTiles: Set<string> =
+      getAttackableTiles("l", board, lastMove, castleRef);
+    // dark left castle
+    const leftUnmoved: boolean = castleRef[0] && castleRef[1];
+    const leftBlank: boolean = ((board[0][1] == "_") && (board[0][2] == "_") && 
+      (board[0][3] == "_"));
+    const leftNotAttacked: boolean = (!attackableTiles.has("0-1") && 
+      !attackableTiles.has("0-2") && !attackableTiles.has("0-3"));
+    if (leftUnmoved && leftBlank && leftNotAttacked) {
+      moves.push([0, 2]);
+    }
+    // light right castle
+    const rightUnmoved: boolean = castleRef[1] && castleRef[2];
+    const rightBlank: boolean = (board[0][5] == "_") && (board[0][6] == "_");
+    const rightNotAttacked: boolean = (!attackableTiles.has("0-5") && 
+      !attackableTiles.has("0-6"));
+    if (rightUnmoved && rightBlank && rightNotAttacked) {
+      moves.push([0, 6]);
+    } 
+  }
   return moves;
 }
 
