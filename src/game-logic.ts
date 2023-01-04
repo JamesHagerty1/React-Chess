@@ -62,13 +62,17 @@ function legalMoves(r: number, c: number, board: string[][],
   const [piece, shade]: [string, string] = 
     [board[r][c].charAt(0), board[r][c].charAt(1)];
   const captureShade: string = (shade == "l") ? "d" : "l";
+
+  // TEMP TEST
+  replaceLegalMoves("l", board, lastMove);
+
   switch (piece) {
     case "k":
       let moves = kingMoves(r, c, board, shade);
-      splitChecks(r, c, board, moves);
+
       return moves;
     case "p":
-      return pawnMoves(r, c, board, shade, captureShade, lastMove);
+      return pawnMoves(r, c, board, shade, lastMove);
     case "r":
       return rookMoves(r, c, board, shade);
     case "b":
@@ -80,6 +84,59 @@ function legalMoves(r: number, c: number, board: string[][],
     default:
       return [];
   }
+}
+
+
+function replaceLegalMoves(shade: string, board: string[][],
+  lastMove: [string, number, number, number, number]): 
+  [{[key: string]: [number, number][]}, {[key: string]: [number, number][]}] {
+
+  // return dict[ "r-c" ] -> ([[y0, x0],...,[yn, xn]], " but for illegal moves)
+  // for r-c in board, if board[r-c]==shade:
+  // collect relevant *Moves (similar switch as above)
+  // for the moves of r-c:
+  // create a mock board, throw it to a fn seeing if shade king under attack
+  // if no, put in arr of legal moves, if yes put in arr of illegal moves
+  // map them
+
+  const legalMovesDict: {[key: string]: [number, number][]} = {};
+  const checkableMovesDict: {[key: string]: [number, number][]} = {};
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (!board[r][c].endsWith(shade)) {
+        continue;
+      }
+      let moves: [number, number][] = [];
+      const piece = board[r][c].charAt(0);
+      switch (piece) {
+        case "k":
+          moves = kingMoves(r, c, board, shade);
+          break;
+        case "p":
+          moves = pawnMoves(r, c, board, shade, lastMove);
+          break;
+        case "r":
+          moves = rookMoves(r, c, board, shade);
+          break;
+        case "b":
+          moves = bishopMoves(r, c, board, shade);
+          break;
+        case "q":
+          moves = queenMoves(r, c, board, shade);
+          break;
+        case "n":
+          moves = knightMoves(r, c, board, shade);
+          break;
+        default:
+          moves = [];
+      }
+      let legalMoves: [number, number][] = [];
+      let checkableMoves: [number, number][] = [];
+    }
+  }
+  
+  return [legalMovesDict, checkableMovesDict];
 }
 
 
@@ -127,9 +184,9 @@ function isEnPassant(rDest: number, cDest: number, board: string[][],
 
 // assert pawn of shade at board[r][c]
 function pawnMoves(r: number, c: number, board: string[][], shade: string,
-  captureShade: string,
   lastMove: [string, number, number, number, number]): [number, number][] {
   let moves: [number, number][] = [];
+  const captureShade: string = (shade == "l") ? "d" : "l";
   // forward 
   const rF1 = (shade == "l") ? r - 1 : r + 1;
   if (onBoard(rF1, c) && board[rF1][c] == "_") {
@@ -225,13 +282,3 @@ function knightMoves(r: number, c: number, board: string[][], shade: string):
   return moves;
 }
 
-
-function splitChecks(r: number, c: number, board: string[][], 
-  moves: [number, number][]): [[number, number][], [number, number][]] {
-  let tup: [[number, number][], [number, number][]]  = [[], []];
-  console.log("splitChecks");
-
-  
-
-  return tup;
-}
