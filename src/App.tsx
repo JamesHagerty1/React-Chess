@@ -106,14 +106,21 @@ function App() {
       let newBoard: string[][] = board.slice();
       const [rCap, cCap]: [number, number] = 
         getCapture(selected[0], selected[1], r, c, board, turn);
-      if (rCap != -1) { // Capture
+      // capture
+      if (rCap != -1) {
         let captures = (turn == "l") ? dCaptures.slice() : lCaptures.slice();
         captures.push(board[rCap][cCap]);
         let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
         newBoard[rCap][cCap] = "_";
-      }
-      const newCastleRef = castleRef.slice(); 
+      }       
       newBoard = makeMove(selected[0], selected[1], r, c, newBoard);
+      const newCastleRef = castleRef.slice();
+      // move rook when king castles
+      if (newBoard[r][c].charAt(0) == "k" && Math.abs(c - selected[1]) == 2) { 
+        const [c1Rook, c2Rook] = (c < selected[1]) ? [0, 3] : [7, 5];
+        newBoard[r][c2Rook] = newBoard[r][c1Rook];
+        newBoard[r][c1Rook] = "_";
+      }
       setBoard(newBoard);
       let newMoveHistory = moveHistory.slice();
       newMoveHistory.push([newBoard[r][c], selected[0], selected[1], r, c]);
