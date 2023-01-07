@@ -1,7 +1,7 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
 import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove, 
-  canCheck, isDeadPosition} from "./game-logic";
+  canCheck} from "./game-logic";
 
 
 interface BoardProps {
@@ -209,17 +209,13 @@ function App() {
     let noMoves = !canMove(moves);
     let check = 
       canCheck(board, turn, moveHistory[moveHistory.length - 1], castleRef);
-    let deadPosition = isDeadPosition(board);
     if (noMoves && !check) {
       setStatus("Stalemate!");
     }
     if (noMoves && check) {
       setStatus("Checkmate!");
     }
-    if (deadPosition) {
-      setStatus("Draw! Dead position.");
-    }
-    return noMoves || deadPosition;
+    return noMoves;
   }
 
   return (

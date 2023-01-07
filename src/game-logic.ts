@@ -22,22 +22,16 @@ function getReach(r: number, c: number, board: string[][], turn: string,
   switch (piece) {
     case "n":
       return knightReach(r, c, board, turn);
-      break;
     case "k":
       return kingReach(r, c, board, turn, lastMove, castleRef, considerCastle);
-      break;
     case "q":
       return queenReach(r, c, board, turn);
-      break;
     case "r":
       return rookReach(r, c, board, turn);
-      break;
     case "b":
       return bishopReach(r, c, board, turn);
-      break;
     case "p":
       return pawnReach(r, c, board, turn, lastMove);
-      break;
     default:
       return [];
   }
@@ -311,10 +305,5 @@ export function canMove(moves: {[key: string]: string[]}): boolean {
       return true;
     }
   }
-  return false;
-}
-
-
-export function isDeadPosition(board: string[][]) {
   return false;
 }
