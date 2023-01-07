@@ -1,6 +1,6 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
-import {getMoves, makeMove} from "./game-logic";
+import {getMoves, makeMove, getCapture} from "./game-logic";
 
 
 interface BoardProps {
@@ -77,29 +77,48 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]]);
   const [turn, setTurn] = useState<string>("l");
+  const [moveHistory, setMoveHistory] = 
+    useState<[string, number, number, number, number][]>([]);  
   const [moves, setMoves] = useState<{[key: string]: string[]}>(
-    getMoves(board, turn));
+    getMoves(board, turn, ["*l", -1, -1, -1, -1]));
   const [selected, setSelected] = useState<[number, number]>([-1, -1]);
   const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
-
+  const [dCaptures, setDCaptures] = useState<string[]>([]);
+  const [lCaptures, setLCaptures] = useState<string[]>([]);
+  
   function clickTile(r: number, c: number) {
     // if valid select, select piece -> list possible moves
     // else if selected valid move -> make move
     // else do nothing
 
-    if (board[r][c].endsWith(turn)) { // Select a piece
+    // Select a piece
+    if (board[r][c].endsWith(turn)) { 
       setSelected([r, c]);
       setSelectedMoves(moves[`${r}${c}`]);
-    } else if (selectedMoves.includes(`${r}${c}`)) { // Make a move
-      let newBoard: string[][] = 
-        makeMove(selected[0], selected[1], r, c, board.slice())
-      let newTurn = (turn == "l") ? "d" : "l";
+
+    // Make a move
+    } else if (selectedMoves.includes(`${r}${c}`)) { 
+      let newBoard: string[][] = board.slice();
+      const [rCap, cCap]: [number, number] = 
+        getCapture(selected[0], selected[1], r, c, board, turn);
+      if (rCap != -1) { // Capture
+        let captures = (turn == "l") ? dCaptures.slice() : lCaptures.slice();
+        captures.push(board[rCap][cCap]);
+        let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
+        newBoard[rCap][cCap] = "_";
+      } 
+      newBoard = makeMove(selected[0], selected[1], r, c, newBoard);
       setBoard(newBoard);
+      let newMoveHistory = moveHistory.slice();
+      newMoveHistory.push([newBoard[r][c], selected[0], selected[1], r, c]);
+      setMoveHistory(newMoveHistory);
       setSelected([-1, -1]);
       setSelectedMoves([]);
       // transition to next player's turn
+      const newTurn = (turn == "l") ? "d" : "l";
       setTurn(newTurn);
-      setMoves(getMoves(newBoard, newTurn));
+      setMoves(getMoves(newBoard, newTurn, 
+        newMoveHistory[newMoveHistory.length - 1]));
     }
   }
 

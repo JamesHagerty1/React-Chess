@@ -1,22 +1,12 @@
-const reach: {[key: string]: Function} = {
-  "n": knightReach, 
-  "k": kingReach,
-  "q": queenReach,
-  "r": rookReach,
-  "b": bishopReach,
-  "p": pawnReach
-}
-
-
-export function getMoves(board: string[][], turn: string):
+export function getMoves(board: string[][], turn: string,
+  lastMove: [string, number, number, number, number]): 
   {[key: string]: string[]} {
     let moves: {[key: string]: string[]} = {};
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (board[r][c].endsWith(turn)) {
-          const pieceId = board[r][c];
-          let tiles: string[] = reach[pieceId.charAt(0)](r, c, board, turn);
-          moves[`${r}${c}`] = legalMoves(r, c, board, tiles, turn);
+          let tiles: string[] = getReach(r, c, board, turn, lastMove);
+          moves[`${r}${c}`] = legalMoves(r, c, board, tiles, turn, lastMove);
         }
       }
     }
@@ -24,14 +14,43 @@ export function getMoves(board: string[][], turn: string):
 }
 
 
+function getReach(r: number, c: number, board: string[][], turn: string,
+  lastMove: [string, number, number, number, number]):
+  string[] {
+  const piece = board[r][c].charAt(0);
+  switch (piece) {
+    case "n":
+      return knightReach(r, c, board, turn);
+      break;
+    case "k":
+      return kingReach(r, c, board, turn);
+      break;
+    case "q":
+      return queenReach(r, c, board, turn);
+      break;
+    case "r":
+      return rookReach(r, c, board, turn);
+      break;
+    case "b":
+      return bishopReach(r, c, board, turn);
+      break;
+    case "p":
+      return pawnReach(r, c, board, turn, lastMove);
+      break;
+    default:
+      return [];
+  }
+}
+
+
 function legalMoves(r: number, c: number, board: string[][], tiles: string[],
-  turn: string): string[] {
+  turn: string, lastMove: [string, number, number, number, number]): string[] {
   let moves: string[] = [];
   for (let tileId of tiles) {
     const [rMove, cMove] = [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
     let tryBoard = JSON.parse(JSON.stringify(board)); // js deepcopy
     tryBoard = makeMove(r, c, rMove, cMove, tryBoard);
-    if (!canCheck(tryBoard, turn)) {
+    if (!canCheck(tryBoard, turn, lastMove)) {
       moves.push(`${rMove}${cMove}`);
     }
   }
@@ -47,7 +66,8 @@ export function makeMove(r1: number, c1: number, r2: number, c2: number,
 }
 
 
-function canCheck(board: string[][], turn: string) {
+function canCheck(board: string[][], turn: string, 
+  lastMove: [string, number, number, number, number]) {
   function findKing(turn: string) {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -60,17 +80,17 @@ function canCheck(board: string[][], turn: string) {
   }
   let [rKing, cKing] = findKing(turn);
   const opponent: string = (turn == "l") ? "d" : "l";
-  return attackedTile(rKing, cKing, board, opponent);
+  return attackedTile(rKing, cKing, board, opponent, lastMove);
 }
 
 
 function attackedTile(rAtt: number, cAtt: number, board: string[][], 
-  opponent: string): boolean {
+  opponent: string, lastMove: [string, number, number, number, number]): 
+  boolean {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c].endsWith(opponent)) {
-        const pieceId = board[r][c];
-        let tiles: string[] = reach[pieceId.charAt(0)](r, c, board, opponent);
+        let tiles: string[] = getReach(r, c, board, opponent, lastMove);
         if (tiles.includes(`${rAtt}${cAtt}`)) {
           return true;
         }
@@ -167,10 +187,9 @@ function bishopReach(r: number, c: number, board: string[][], turn: string):
 }
 
 
-function pawnReach(r: number, c: number, board: string[][], turn: string): 
-  string[] {
+function pawnReach(r: number, c: number, board: string[][], turn: string,
+  lastMove: [string, number, number, number, number]): string[] {
   let tiles: string[] = [];
-
   const opponent: string = (turn == "l") ? "d" : "l";
   // forward 
   const rF1 = (turn == "l") ? r - 1 : r + 1;
@@ -192,16 +211,39 @@ function pawnReach(r: number, c: number, board: string[][], turn: string):
     board[rF1][cR].charAt(1) == opponent) {
     tiles.push(`${rF1}${cR}`);
   }
-
-  // TBD
-  // en passant captures
-  // if (onBoard(rF1, cL) && isEnPassant(rF1, cL, captureShade)) {
-  //   moves.push([rF1, cL]);
-  // }
-  // if (onBoard(rF1, cR) && isEnPassant(rF1, cR, captureShade)) {
-  //   moves.push([rF1, cR]);
-  // }
-  // return moves;
-
+  // en passant diagonal captures
+  if (onBoard(rF1, cL) && isEnPassant(rF1, cL, board, opponent, lastMove)) {
+    tiles.push(`${rF1}${cL}`);
+  }
+  if (onBoard(rF1, cR) && isEnPassant(rF1, cR, board, opponent, lastMove)) {
+    tiles.push(`${rF1}${cR}`);
+  }
   return tiles;
+}
+
+
+function isEnPassant(rDest: number, cDest: number, board: string[][], 
+  captureShade: string, lastMove: [string, number, number, number, number]): 
+  boolean {
+  const [piece, r1, c1, r2, c2] = lastMove;
+  const blankDest: boolean = (board[rDest][cDest].charAt(0) == "_");
+  const pawnMovedTwo: boolean = 
+    piece.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
+  const rBehind: number = (captureShade == "l") ? rDest - 1 : rDest + 1;
+  const pawnBehind: boolean = (rBehind == r2 && cDest == c2);
+  return blankDest && pawnMovedTwo && pawnBehind;
+}
+
+
+// assert sees board before (potentially capturing) piece makes move
+export function getCapture(r1: number, c1: number, r2: number, c2: number,
+  board: string[][], turn: string): [number, number] {
+  const opponent: string = (turn == "l") ? "d" : "l";
+  if (board[r2][c2].endsWith(opponent)) { // on top of piece capture
+    return [r2, c2];
+  }
+  if (board[r1][c1].charAt(0) == "p" && c1 != c2) { // pawn en passant capture
+    return (turn == "l") ? [r2 + 1, c2] : [r2 - 1, c2];
+  }
+  return [-1, -1]; // nothing captured
 }
