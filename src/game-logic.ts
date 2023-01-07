@@ -69,6 +69,23 @@ export function makeMove(r1: number, c1: number, r2: number, c2: number,
 }
 
 
+export function updateCastleRef(castleRef: number[], piece: string, 
+  turn: string, c: number): number[] {
+  const [i1, i2] = (turn == "l") ? [0, 1] : [2, 3];
+  if (piece == "k") {
+    castleRef[i1] = 0;
+    castleRef[i2] = 0;
+  }
+  if (piece == "r" && c == 0) {
+    castleRef[i1] = 0;
+  }
+  if (piece == "r" && c == 7) {
+    castleRef[i2] = 0;
+  }
+  return castleRef;
+}
+
+
 function canCheck(board: string[][], turn: string, 
   lastMove: [string, number, number, number, number], castleRef: number[]): 
   boolean {
@@ -136,6 +153,7 @@ function kingReach(r: number, c: number, board: string[][], turn: string,
   lastMove: [string, number, number, number, number], castleRef: number[],
   considerCastle: boolean): string[] {
   let tiles: string[] = [];
+  // Ordinary one-square-away moves
   let candidateMoves = [
     [r - 1, c], [r, c + 1], [r + 1, c], [r, c - 1],
     [r - 1, c - 1], [r - 1, c + 1], [r + 1, c + 1], [r + 1, c - 1]];
@@ -145,10 +163,10 @@ function kingReach(r: number, c: number, board: string[][], turn: string,
       tiles.push(`${rCan}${cCan}`);
     }
   }
-  // Castling
+  // Castling moves
   if (considerCastle) {
-    const [leftRookMoved, kingMoved, rightRookMoved] = 
-      (turn == "l") ? castleRef.slice(0, 3) : castleRef.slice(3, 6);
+    const [canLeft, canRight] = 
+      (turn == "l") ? castleRef.slice(0, 2) : castleRef.slice(2, 4);
     const opponent: string = (turn == "l") ? "d" : "l";
     const kingSafe = 
       !attackedTile(r, c, board, opponent, lastMove, castleRef);
@@ -161,10 +179,10 @@ function kingReach(r: number, c: number, board: string[][], turn: string,
       !attackedTile(r, 3, board, opponent, lastMove, castleRef)), 
       (!attackedTile(r, 5, board, opponent, lastMove, castleRef) &&
       !attackedTile(r, 6, board, opponent, lastMove, castleRef))];
-    if (!leftRookMoved && !kingMoved && kingSafe && leftGap && leftSafe) {
+    if (canLeft && kingSafe && leftGap && leftSafe) {
       tiles.push(`${r}${c - 2}`);
     }
-    if (!rightRookMoved && !kingMoved && kingSafe && rightGap && rightSafe) {
+    if (canRight && kingSafe && rightGap && rightSafe) {
       tiles.push(`${r}${c + 2}`);
     }
   }

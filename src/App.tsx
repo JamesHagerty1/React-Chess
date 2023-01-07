@@ -1,6 +1,6 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
-import {getMoves, makeMove, getCapture} from "./game-logic";
+import {getMoves, makeMove, getCapture, updateCastleRef} from "./game-logic";
 
 
 interface BoardProps {
@@ -8,6 +8,8 @@ interface BoardProps {
   selected: [number, number];
   selectedMoves: string[];
   clickTile: Function;
+  turn: string;
+  pawnPromo: boolean;
 }
 const Board: FC<BoardProps> = (props) => {
   // State and effects are to keep track of board dimensions, which help
@@ -82,19 +84,21 @@ function App() {
   const [turn, setTurn] = useState<string>("l");
   const [moveHistory, setMoveHistory] = 
     useState<[string, number, number, number, number][]>([]);
-  // castleRef 0 == hasn't moved, 1 == has moved for: [rl, kl, rl, rd, kd, rd]
-  const [castleRef, setCastleRef] = useState<number[]>([0, 0, 0, 0, 0, 0]);  
+  // can castle for: [rl, rl, rd, rd] (set to 0 once invalid to castle)
+  const [castleRef, setCastleRef] = useState<number[]>([1, 1, 1, 1]);  
   const [moves, setMoves] = useState<{[key: string]: string[]}>(
     getMoves(board, turn, ["*l", -1, -1, -1, -1], castleRef));
   const [selected, setSelected] = useState<[number, number]>([-1, -1]);
   const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
   const [dCaptures, setDCaptures] = useState<string[]>([]);
   const [lCaptures, setLCaptures] = useState<string[]>([]);
+  const [pawnPromo, setPawnPromo] = useState<boolean>(false);
   
   function clickTile(r: number, c: number) {
-    // if valid select, select piece -> list possible moves
-    // else if selected valid move -> make move
-    // else do nothing
+    // prevent piece selection / move making when player needs to promote pawn
+    if (pawnPromo) {
+      return;
+    }
 
     // Select a piece
     if (board[r][c].endsWith(turn)) { 
@@ -124,10 +128,18 @@ function App() {
       setBoard(newBoard);
       let newMoveHistory = moveHistory.slice();
       newMoveHistory.push([newBoard[r][c], selected[0], selected[1], r, c]);
+      setCastleRef(updateCastleRef(
+        castleRef.slice(), newBoard[r][c].charAt(0), turn, selected[1]));
       setMoveHistory(newMoveHistory);
       setSelected([-1, -1]);
       setSelectedMoves([]);
-      // transition to next player's turn
+      
+      // Lock piece selection and moves for pawn promotion
+      const reachedEnd = (turn == "l") ? (r == 0) : (r == 7); 
+      if (newBoard[r][c].charAt(0) == "p" && reachedEnd) {
+        setPawnPromo(true);
+      }
+      // OR transition to next turn
       const newTurn = (turn == "l") ? "d" : "l";
       setTurn(newTurn);
       setMoves(getMoves(newBoard, newTurn, 
@@ -138,7 +150,7 @@ function App() {
   return (
     <div className="flex-container">
       <Board board={board} selected={selected} selectedMoves={selectedMoves} 
-      clickTile={clickTile}/>
+      clickTile={clickTile} turn={turn} pawnPromo={pawnPromo}/>
     </div>
   );
 }
