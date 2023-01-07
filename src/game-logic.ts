@@ -93,7 +93,7 @@ export function parseMove(move: string):
 }
 
 
-function canCheck(board: string[][], turn: string, lastMove: string, 
+export function canCheck(board: string[][], turn: string, lastMove: string, 
   castleRef: number[]): boolean {
   function findKing(turn: string) {
     for (let r = 0; r < 8; r++) {
@@ -302,4 +302,19 @@ export function getCapture(r1: number, c1: number, r2: number, c2: number,
     return (turn == "l") ? [r2 + 1, c2] : [r2 - 1, c2];
   }
   return [-1, -1]; // nothing captured
+}
+
+
+export function canMove(moves: {[key: string]: string[]}): boolean {
+  for (const tileId in moves) {
+    if (moves[tileId].length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+export function isDeadPosition(board: string[][]) {
+  return false;
 }

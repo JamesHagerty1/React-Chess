@@ -1,6 +1,7 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
-import {getMoves, makeMove, getCapture, updateCastleRef, parseMove} from "./game-logic";
+import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove, 
+  canCheck, isDeadPosition} from "./game-logic";
 
 
 interface BoardProps {
@@ -13,8 +14,7 @@ interface BoardProps {
   clickPromo: Function;
 }
 const Board: FC<BoardProps> = (props) => {
-  // Following state and effects are to keep track of board dimensions, which help
-  // calculate how to draw the board annotations
+  // Board dimension tracking, useful reference for board annotations
   const [leftOffset, setLeftOffset] = useState<number>(-1);
   const [topOffset, setTopOffset] = useState<number>(-1);
   const [width, setWidth] = useState<number>(-1);
@@ -129,10 +129,10 @@ function App() {
   const [dCaptures, setDCaptures] = useState<string[]>([]);
   const [lCaptures, setLCaptures] = useState<string[]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>("Ongoing game");
   
   function clickTile(r: number, c: number) {
-    // prevent piece selection / move making when player needs to promote pawn
-    if (pawnPromo) {
+    if (pawnPromo || gameOver()) {
       return;
     }
 
@@ -205,6 +205,23 @@ function App() {
     setMoves(getMoves(newBoard, newTurn, lastMove, castleRef));
   }
 
+  function gameOver(): boolean {
+    let noMoves = !canMove(moves);
+    let check = 
+      canCheck(board, turn, moveHistory[moveHistory.length - 1], castleRef);
+    let deadPosition = isDeadPosition(board);
+    if (noMoves && !check) {
+      setStatus("Stalemate!");
+    }
+    if (noMoves && check) {
+      setStatus("Checkmate!");
+    }
+    if (deadPosition) {
+      setStatus("Draw! Dead position.");
+    }
+    return noMoves || deadPosition;
+  }
+
   return (
     <div className="flex-container">
       <div>
@@ -216,6 +233,7 @@ function App() {
       </div>
       <div>
         {moveHistory.map((move, i) => <div key={i}>{move}</div>)}
+        <p>{status}</p>
       </div>
     </div>
   );
