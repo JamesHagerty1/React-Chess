@@ -1,6 +1,6 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
-import {getMoves, makeMove, getCapture, updateCastleRef} from "./game-logic";
+import {getMoves, makeMove, getCapture, updateCastleRef, parseMove} from "./game-logic";
 
 
 interface BoardProps {
@@ -9,15 +9,16 @@ interface BoardProps {
   selectedMoves: string[];
   clickTile: Function;
   pawnPromo: boolean;
+  lastMove: string;
+  clickPromo: Function;
 }
 const Board: FC<BoardProps> = (props) => {
-  // State and effects are to keep track of board dimensions, which help
+  // Following state and effects are to keep track of board dimensions, which help
   // calculate how to draw the board annotations
   const [leftOffset, setLeftOffset] = useState<number>(-1);
   const [topOffset, setTopOffset] = useState<number>(-1);
   const [width, setWidth] = useState<number>(-1);
   const boardRef = useRef<HTMLDivElement>(null);
-
   const onResize = () => {
     setLeftOffset((boardRef.current?.offsetLeft != undefined) ? 
       boardRef.current?.offsetLeft : -1);
@@ -26,11 +27,21 @@ const Board: FC<BoardProps> = (props) => {
     setWidth((boardRef.current?.offsetWidth != undefined) ? 
       boardRef.current?.offsetWidth : -1);
   }
-
   useEffect(() => {
     onResize(); 
     window.addEventListener("resize", onResize);
   }, []);
+
+  // Reference for a pawn promotion box
+  const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId]:
+    [string, number, number, number, number, string, number, number, string] = 
+    parseMove(props.lastMove);
+  const promos: string[] = 
+    (pieceId.endsWith("l")) ? 
+    ["ql", "rl", "bl", "nl"] : ["nd", "bd", "rd", "qd"];
+  let promoStyle = (pieceId.endsWith("l")) ? 
+    {"top": "0px", "left": ((width / 8) * c2)} : 
+    {"bottom": "0px", "left": ((width / 8) * c2)}; 
 
   return (
     <div>
@@ -49,20 +60,28 @@ const Board: FC<BoardProps> = (props) => {
       </div>
       <div className="board-annotations" 
       style={{"top": `${topOffset}px`, "left": `${leftOffset}px`}}>
-        <svg className="svg-container">
-        {props.selected[0] != -1 &&
-          <circle className="svg-drawing" 
-          cx={props.selected[1] * (width / 8) + (width / 16)} 
-          cy={props.selected[0] * (width / 8) + (width / 16)} 
-          r={width / 16} stroke="dodgerblue" fill="none"
-          strokeWidth="3" />
+        {props.pawnPromo &&
+          <div className="pawn-promotion" style={promoStyle}>
+            {promos.map((pieceId, i) =>
+              <img className="pawn-promotion-img" 
+              onClick={() => props.clickPromo(pieceId, r2, c2)}
+              src={require(`./images/${pieceId}.png`)} key={i}/>)}
+          </div>
         }
-        {props.selectedMoves.map((tileId, i) =>
-          <circle key={i} className="svg-drawing" 
-          cx={Number(tileId.charAt(1)) * (width / 8) + (width / 16)} 
-          cy={Number(tileId.charAt(0)) * (width / 8) + (width / 16)} 
-          r={width / 64} fill="dodgerblue" />
-        )}
+        <svg className="svg-container">
+          {props.selected[0] != -1 &&
+            <circle className="svg-drawing" 
+            cx={props.selected[1] * (width / 8) + (width / 16)} 
+            cy={props.selected[0] * (width / 8) + (width / 16)} 
+            r={width / 16} stroke="dodgerblue" fill="none"
+            strokeWidth="3" />
+          }
+          {props.selectedMoves.map((tileId, i) =>
+            <circle key={i} className="svg-drawing" 
+            cx={Number(tileId.charAt(1)) * (width / 8) + (width / 16)} 
+            cy={Number(tileId.charAt(0)) * (width / 8) + (width / 16)} 
+            r={width / 64} fill="dodgerblue" />
+          )}
         </svg>
       </div>
     </div>
@@ -143,20 +162,37 @@ function App() {
       const reachedEnd = (turn == "l") ? (r == 0) : (r == 7); 
       if (newBoard[r][c].charAt(0) == "p" && reachedEnd) {
         setPawnPromo(true);
+        return;
       }
       // OR transition to next turn
       const newTurn = (turn == "l") ? "d" : "l";
       setTurn(newTurn);
-
       setMoves(getMoves(newBoard, newTurn, 
         newMoveHistory[newMoveHistory.length - 1], newCastleRef));
     }
   }
 
+  function clickPromo(promoId: string, r: number, c: number) {
+    let newBoard = board.slice();
+    newBoard[r][c] = promoId;
+    setPawnPromo(false);
+    const newTurn = (turn == "l") ? "d" : "l";
+    setTurn(newTurn);
+    // Update last move to mention the promotion
+    let lastMoveArr: string[] = moveHistory[moveHistory.length - 1].split(",");
+    lastMoveArr[lastMoveArr.length - 1] = promoId;
+    let lastMove = lastMoveArr.toString();
+    let newMoveHistory = moveHistory.slice();
+    newMoveHistory[newMoveHistory.length - 1] = lastMove;
+    setMoveHistory(newMoveHistory);
+    setMoves(getMoves(newBoard, newTurn, lastMove, castleRef));
+  }
+
   return (
     <div className="flex-container">
       <Board board={board} selected={selected} selectedMoves={selectedMoves} 
-      clickTile={clickTile} pawnPromo={pawnPromo}/>
+      clickTile={clickTile} pawnPromo={pawnPromo} 
+      lastMove={moveHistory[moveHistory.length - 1]} clickPromo={clickPromo}/>
       <div>
         {moveHistory.map((move, i) => <div key={i}>{move}</div>)}
       </div>

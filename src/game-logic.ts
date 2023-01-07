@@ -84,6 +84,15 @@ export function updateCastleRef(castleRef: number[], piece: string,
 }
 
 
+export function parseMove(move: string):
+  [string, number, number, number, number, string, number, number, string] {
+  const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId] = 
+    move.split(",");
+  return [pieceId, Number(r1), Number(c1), Number(r2), Number(c2),
+    captureId, Number(rCap), Number(cCap), promoId]
+}
+
+
 function canCheck(board: string[][], turn: string, lastMove: string, 
   castleRef: number[]): boolean {
   function findKing(turn: string) {
@@ -270,10 +279,9 @@ function pawnReach(r: number, c: number, board: string[][], turn: string,
 function isEnPassant(rDest: number, cDest: number, board: string[][], 
   captureShade: string, lastMove: string): 
   boolean {
-  const [pieceId, r1Str, c1Str, r2Str, c2Str, captureId, rCap, cCap, promoId] = 
-    lastMove.split(",");
-  const [r1, r2, c2] = 
-    [Number(r1Str), Number(r2Str), Number(c2Str)]
+  const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId]:
+    [string, number, number, number, number, string, number, number, string] = 
+    parseMove(lastMove);
   const blankDest: boolean = (board[rDest][cDest].charAt(0) == "_");
   const pawnMovedTwo: boolean = 
     pieceId.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
