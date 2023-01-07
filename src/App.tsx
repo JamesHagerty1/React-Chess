@@ -8,7 +8,6 @@ interface BoardProps {
   selected: [number, number];
   selectedMoves: string[];
   clickTile: Function;
-  turn: string;
   pawnPromo: boolean;
 }
 const Board: FC<BoardProps> = (props) => {
@@ -82,12 +81,13 @@ function App() {
     ["pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl"],
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]]);
   const [turn, setTurn] = useState<string>("l");
+  // "move pieceId, r1, c1, r2, c2, captured pieceId, rCap, cCap, promo pieceId"
   const [moveHistory, setMoveHistory] = 
-    useState<[string, number, number, number, number][]>([]);
+    useState<string[]>(["*l,-1,-1,-1,-1,*d,-1,-1,*l"]);
   // can castle for: [rl, rl, rd, rd] (set to 0 once invalid to castle)
   const [castleRef, setCastleRef] = useState<number[]>([1, 1, 1, 1]);  
   const [moves, setMoves] = useState<{[key: string]: string[]}>(
-    getMoves(board, turn, ["*l", -1, -1, -1, -1], castleRef));
+    getMoves(board, turn, moveHistory[moveHistory.length - 1], castleRef));
   const [selected, setSelected] = useState<[number, number]>([-1, -1]);
   const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
   const [dCaptures, setDCaptures] = useState<string[]>([]);
@@ -107,30 +107,35 @@ function App() {
 
     // Make a move
     } else if (selectedMoves.includes(`${r}${c}`)) { 
+      const [rSel, cSel] = [selected[0], selected[1]];
+      const pieceId = board[rSel][cSel];
+      let captureId = "*d";
       let newBoard: string[][] = board.slice();
       const [rCap, cCap]: [number, number] = 
-        getCapture(selected[0], selected[1], r, c, board, turn);
+        getCapture(rSel, cSel, r, c, board, turn);
       // capture
       if (rCap != -1) {
         let captures = (turn == "l") ? dCaptures.slice() : lCaptures.slice();
         captures.push(board[rCap][cCap]);
+        captureId = board[rCap][cCap]
         let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
         newBoard[rCap][cCap] = "_";
       }       
-      newBoard = makeMove(selected[0], selected[1], r, c, newBoard);
+      newBoard = makeMove(rSel, cSel, r, c, newBoard);
       const newCastleRef = castleRef.slice();
       // move rook when king castles
-      if (newBoard[r][c].charAt(0) == "k" && Math.abs(c - selected[1]) == 2) { 
-        const [c1Rook, c2Rook] = (c < selected[1]) ? [0, 3] : [7, 5];
+      if (newBoard[r][c].charAt(0) == "k" && Math.abs(c - cSel) == 2) { 
+        const [c1Rook, c2Rook] = (c < cSel) ? [0, 3] : [7, 5];
         newBoard[r][c2Rook] = newBoard[r][c1Rook];
         newBoard[r][c1Rook] = "_";
       }
       setBoard(newBoard);
       let newMoveHistory = moveHistory.slice();
-      newMoveHistory.push([newBoard[r][c], selected[0], selected[1], r, c]);
-      setCastleRef(updateCastleRef(
-        castleRef.slice(), newBoard[r][c].charAt(0), turn, selected[1]));
+      newMoveHistory.push(
+        `${pieceId},${rSel},${cSel},${r},${c},${captureId},${rCap},${cCap},*d`);
       setMoveHistory(newMoveHistory);
+      setCastleRef(updateCastleRef(
+        castleRef.slice(), newBoard[r][c].charAt(0), turn, cSel));
       setSelected([-1, -1]);
       setSelectedMoves([]);
       
@@ -142,6 +147,7 @@ function App() {
       // OR transition to next turn
       const newTurn = (turn == "l") ? "d" : "l";
       setTurn(newTurn);
+
       setMoves(getMoves(newBoard, newTurn, 
         newMoveHistory[newMoveHistory.length - 1], newCastleRef));
     }
@@ -150,7 +156,10 @@ function App() {
   return (
     <div className="flex-container">
       <Board board={board} selected={selected} selectedMoves={selectedMoves} 
-      clickTile={clickTile} turn={turn} pawnPromo={pawnPromo}/>
+      clickTile={clickTile} pawnPromo={pawnPromo}/>
+      <div>
+        {moveHistory.map((move, i) => <div key={i}>{move}</div>)}
+      </div>
     </div>
   );
 }

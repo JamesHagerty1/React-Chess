@@ -1,6 +1,5 @@
-export function getMoves(board: string[][], turn: string,
-  lastMove: [string, number, number, number, number], castleRef: number[]): 
-  {[key: string]: string[]} {
+export function getMoves(board: string[][], turn: string, lastMove: string, 
+  castleRef: number[]): {[key: string]: string[]} {
     let moves: {[key: string]: string[]} = {};
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -8,7 +7,7 @@ export function getMoves(board: string[][], turn: string,
           let tiles: string[] = 
             getReach(r, c, board, turn, lastMove, castleRef, true);
           moves[`${r}${c}`] = 
-            legalMoves(r, c, board, tiles, turn, lastMove, castleRef, false);
+            legalMoves(r, c, board, tiles, turn, lastMove, castleRef);
         }
       }
     }
@@ -17,7 +16,7 @@ export function getMoves(board: string[][], turn: string,
 
 
 function getReach(r: number, c: number, board: string[][], turn: string,
-  lastMove: [string, number, number, number, number], castleRef: number[],
+  lastMove: string, castleRef: number[],
   considerCastle: boolean): string[] {
   const piece = board[r][c].charAt(0);
   switch (piece) {
@@ -46,8 +45,7 @@ function getReach(r: number, c: number, board: string[][], turn: string,
 
 
 function legalMoves(r: number, c: number, board: string[][], tiles: string[],
-  turn: string, lastMove: [string, number, number, number, number],
-  castleRef: number[], considerCastle: boolean): string[] {
+  turn: string, lastMove: string, castleRef: number[]): string[] {
   let moves: string[] = [];
   for (let tileId of tiles) {
     const [rMove, cMove] = [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
@@ -86,9 +84,8 @@ export function updateCastleRef(castleRef: number[], piece: string,
 }
 
 
-function canCheck(board: string[][], turn: string, 
-  lastMove: [string, number, number, number, number], castleRef: number[]): 
-  boolean {
+function canCheck(board: string[][], turn: string, lastMove: string, 
+  castleRef: number[]): boolean {
   function findKing(turn: string) {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -107,8 +104,7 @@ function canCheck(board: string[][], turn: string,
 
 
 function attackedTile(rAtt: number, cAtt: number, board: string[][], 
-  opponent: string, lastMove: [string, number, number, number, number],
-  castleRef: number[]): boolean {
+  opponent: string, lastMove: string, castleRef: number[]): boolean {
   let tiles: string[] = []                  
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
@@ -150,7 +146,7 @@ function knightReach(r: number, c: number, board: string[][], turn: string):
 
 
 function kingReach(r: number, c: number, board: string[][], turn: string, 
-  lastMove: [string, number, number, number, number], castleRef: number[],
+  lastMove: string, castleRef: number[],
   considerCastle: boolean): string[] {
   let tiles: string[] = [];
   // Ordinary one-square-away moves
@@ -237,7 +233,7 @@ function bishopReach(r: number, c: number, board: string[][], turn: string):
 
 
 function pawnReach(r: number, c: number, board: string[][], turn: string,
-  lastMove: [string, number, number, number, number]): string[] {
+  lastMove: string): string[] {
   let tiles: string[] = [];
   const opponent: string = (turn == "l") ? "d" : "l";
   // forward 
@@ -272,12 +268,15 @@ function pawnReach(r: number, c: number, board: string[][], turn: string,
 
 
 function isEnPassant(rDest: number, cDest: number, board: string[][], 
-  captureShade: string, lastMove: [string, number, number, number, number]): 
+  captureShade: string, lastMove: string): 
   boolean {
-  const [piece, r1, c1, r2, c2] = lastMove;
+  const [pieceId, r1Str, c1Str, r2Str, c2Str, captureId, rCap, cCap, promoId] = 
+    lastMove.split(",");
+  const [r1, r2, c2] = 
+    [Number(r1Str), Number(r2Str), Number(c2Str)]
   const blankDest: boolean = (board[rDest][cDest].charAt(0) == "_");
   const pawnMovedTwo: boolean = 
-    piece.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
+    pieceId.charAt(0) == "p" && Math.abs(r1 - r2) == 2;
   const rBehind: number = (captureShade == "l") ? rDest - 1 : rDest + 1;
   const pawnBehind: boolean = (rBehind == r2 && cDest == c2);
   return blankDest && pawnMovedTwo && pawnBehind;
