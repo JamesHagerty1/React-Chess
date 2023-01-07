@@ -61,3 +61,14 @@
 .pawn-promotion-img:hover {
   background: dodgerblue;
 }
+
+.captures {
+  outline: 1px solid blue;
+  display: flex;
+  align-items: center;
+  width: 80vmin;
+  height: 8vmin;
+}
+.capture-img {
+  width: 6.25%;
+}

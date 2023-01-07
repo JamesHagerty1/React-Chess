@@ -50,7 +50,9 @@ const Board: FC<BoardProps> = (props) => {
           <div className="board-row" key={r}>
             {row.map((pieceId, c) =>
               <div className="board-row-tile" 
-              onClick={() => props.clickTile(r, c)} key={c}>
+              onClick={() => props.clickTile(r, c)} key={c}
+              style={((r + c) % 2 == 0) ? 
+              {"backgroundColor" : "white"} : {"backgroundColor" : "lavender"}}>
                 <img className="board-row-tile-img" 
                 src={require(`./images/${pieceId}.png`)}/>
               </div>
@@ -84,6 +86,21 @@ const Board: FC<BoardProps> = (props) => {
           )}
         </svg>
       </div>
+    </div>
+  );
+}
+
+
+interface CapturesProps {
+  pieceIds: string[];
+}
+const Captures: FC<CapturesProps> = (props) => {
+  return (
+    <div className="captures">
+      {props.pieceIds.map((pieceId, i) => 
+        <img className="capture-img" 
+        src={require(`./images/${pieceId}.png`)} key={i}/>
+      )}
     </div>
   );
 }
@@ -190,9 +207,13 @@ function App() {
 
   return (
     <div className="flex-container">
-      <Board board={board} selected={selected} selectedMoves={selectedMoves} 
-      clickTile={clickTile} pawnPromo={pawnPromo} 
-      lastMove={moveHistory[moveHistory.length - 1]} clickPromo={clickPromo}/>
+      <div>
+        <Captures pieceIds={lCaptures}/>
+        <Board board={board} selected={selected} selectedMoves={selectedMoves} 
+        clickTile={clickTile} pawnPromo={pawnPromo} 
+        lastMove={moveHistory[moveHistory.length - 1]} clickPromo={clickPromo}/>
+        <Captures pieceIds={dCaptures}/>
+      </div>
       <div>
         {moveHistory.map((move, i) => <div key={i}>{move}</div>)}
       </div>
