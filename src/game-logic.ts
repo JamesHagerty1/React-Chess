@@ -1,12 +1,14 @@
 export function getMoves(board: string[][], turn: string,
-  lastMove: [string, number, number, number, number]): 
+  lastMove: [string, number, number, number, number], castleRef: number[]): 
   {[key: string]: string[]} {
     let moves: {[key: string]: string[]} = {};
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         if (board[r][c].endsWith(turn)) {
-          let tiles: string[] = getReach(r, c, board, turn, lastMove);
-          moves[`${r}${c}`] = legalMoves(r, c, board, tiles, turn, lastMove);
+          let tiles: string[] = 
+            getReach(r, c, board, turn, lastMove, castleRef, true);
+          moves[`${r}${c}`] = 
+            legalMoves(r, c, board, tiles, turn, lastMove, castleRef, false);
         }
       }
     }
@@ -15,15 +17,15 @@ export function getMoves(board: string[][], turn: string,
 
 
 function getReach(r: number, c: number, board: string[][], turn: string,
-  lastMove: [string, number, number, number, number]):
-  string[] {
+  lastMove: [string, number, number, number, number], castleRef: number[],
+  considerCastle: boolean): string[] {
   const piece = board[r][c].charAt(0);
   switch (piece) {
     case "n":
       return knightReach(r, c, board, turn);
       break;
     case "k":
-      return kingReach(r, c, board, turn);
+      return kingReach(r, c, board, turn, lastMove, castleRef, considerCastle);
       break;
     case "q":
       return queenReach(r, c, board, turn);
@@ -44,13 +46,14 @@ function getReach(r: number, c: number, board: string[][], turn: string,
 
 
 function legalMoves(r: number, c: number, board: string[][], tiles: string[],
-  turn: string, lastMove: [string, number, number, number, number]): string[] {
+  turn: string, lastMove: [string, number, number, number, number],
+  castleRef: number[], considerCastle: boolean): string[] {
   let moves: string[] = [];
   for (let tileId of tiles) {
     const [rMove, cMove] = [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
     let tryBoard = JSON.parse(JSON.stringify(board)); // js deepcopy
     tryBoard = makeMove(r, c, rMove, cMove, tryBoard);
-    if (!canCheck(tryBoard, turn, lastMove)) {
+    if (!canCheck(tryBoard, turn, lastMove, castleRef)) {
       moves.push(`${rMove}${cMove}`);
     }
   }
@@ -67,7 +70,8 @@ export function makeMove(r1: number, c1: number, r2: number, c2: number,
 
 
 function canCheck(board: string[][], turn: string, 
-  lastMove: [string, number, number, number, number]) {
+  lastMove: [string, number, number, number, number], castleRef: number[]): 
+  boolean {
   function findKing(turn: string) {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -80,17 +84,23 @@ function canCheck(board: string[][], turn: string,
   }
   let [rKing, cKing] = findKing(turn);
   const opponent: string = (turn == "l") ? "d" : "l";
-  return attackedTile(rKing, cKing, board, opponent, lastMove);
+  return attackedTile(
+    rKing, cKing, board, opponent, lastMove, castleRef);
 }
 
 
 function attackedTile(rAtt: number, cAtt: number, board: string[][], 
-  opponent: string, lastMove: [string, number, number, number, number]): 
-  boolean {
+  opponent: string, lastMove: [string, number, number, number, number],
+  castleRef: number[]): boolean {
+  let tiles: string[] = []                  
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c].endsWith(opponent)) {
-        let tiles: string[] = getReach(r, c, board, opponent, lastMove);
+        // considerCastle==false to prevent stack overflow from recursion from
+        // opponents looking at each other's potential moves;
+        // an opponent king's castling will never attack cur turn's tile
+        tiles = 
+          getReach(r, c, board, opponent, lastMove, castleRef, false); 
         if (tiles.includes(`${rAtt}${cAtt}`)) {
           return true;
         }
@@ -122,8 +132,9 @@ function knightReach(r: number, c: number, board: string[][], turn: string):
 }
 
 
-function kingReach(r: number, c: number, board: string[][], turn: string): 
-  string[] {
+function kingReach(r: number, c: number, board: string[][], turn: string, 
+  lastMove: [string, number, number, number, number], castleRef: number[],
+  considerCastle: boolean): string[] {
   let tiles: string[] = [];
   let candidateMoves = [
     [r - 1, c], [r, c + 1], [r + 1, c], [r, c - 1],
@@ -134,9 +145,29 @@ function kingReach(r: number, c: number, board: string[][], turn: string):
       tiles.push(`${rCan}${cCan}`);
     }
   }
-
-  // CASTLING TBD
-
+  // Castling
+  if (considerCastle) {
+    const [leftRookMoved, kingMoved, rightRookMoved] = 
+      (turn == "l") ? castleRef.slice(0, 3) : castleRef.slice(3, 6);
+    const opponent: string = (turn == "l") ? "d" : "l";
+    const kingSafe = 
+      !attackedTile(r, c, board, opponent, lastMove, castleRef);
+    const [leftGap, rightGap] = [
+      board[r][1] == "_" && board[r][2] == "_" && board[r][3] == "_",
+      board[r][5] == "_" && board[r][6] == "_"];
+    const [leftSafe, rightSafe] = [
+      (!attackedTile(r, 1, board, opponent, lastMove, castleRef) &&
+      !attackedTile(r, 2, board, opponent, lastMove, castleRef) &&
+      !attackedTile(r, 3, board, opponent, lastMove, castleRef)), 
+      (!attackedTile(r, 5, board, opponent, lastMove, castleRef) &&
+      !attackedTile(r, 6, board, opponent, lastMove, castleRef))];
+    if (!leftRookMoved && !kingMoved && kingSafe && leftGap && leftSafe) {
+      tiles.push(`${r}${c - 2}`);
+    }
+    if (!rightRookMoved && !kingMoved && kingSafe && rightGap && rightSafe) {
+      tiles.push(`${r}${c + 2}`);
+    }
+  }
   return tiles;
 }
 

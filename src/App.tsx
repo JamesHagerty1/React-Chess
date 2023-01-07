@@ -16,6 +16,7 @@ const Board: FC<BoardProps> = (props) => {
   const [topOffset, setTopOffset] = useState<number>(-1);
   const [width, setWidth] = useState<number>(-1);
   const boardRef = useRef<HTMLDivElement>(null);
+
   const onResize = () => {
     setLeftOffset((boardRef.current?.offsetLeft != undefined) ? 
       boardRef.current?.offsetLeft : -1);
@@ -24,10 +25,12 @@ const Board: FC<BoardProps> = (props) => {
     setWidth((boardRef.current?.offsetWidth != undefined) ? 
       boardRef.current?.offsetWidth : -1);
   }
+
   useEffect(() => {
     onResize(); 
     window.addEventListener("resize", onResize);
   }, []);
+
   return (
     <div>
       <div className="board" ref={boardRef}>
@@ -78,9 +81,11 @@ function App() {
     ["rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl"]]);
   const [turn, setTurn] = useState<string>("l");
   const [moveHistory, setMoveHistory] = 
-    useState<[string, number, number, number, number][]>([]);  
+    useState<[string, number, number, number, number][]>([]);
+  // castleRef 0 == hasn't moved, 1 == has moved for: [rl, kl, rl, rd, kd, rd]
+  const [castleRef, setCastleRef] = useState<number[]>([0, 0, 0, 0, 0, 0]);  
   const [moves, setMoves] = useState<{[key: string]: string[]}>(
-    getMoves(board, turn, ["*l", -1, -1, -1, -1]));
+    getMoves(board, turn, ["*l", -1, -1, -1, -1], castleRef));
   const [selected, setSelected] = useState<[number, number]>([-1, -1]);
   const [selectedMoves, setSelectedMoves] = useState<string[]>([]);
   const [dCaptures, setDCaptures] = useState<string[]>([]);
@@ -106,7 +111,8 @@ function App() {
         captures.push(board[rCap][cCap]);
         let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
         newBoard[rCap][cCap] = "_";
-      } 
+      }
+      const newCastleRef = castleRef.slice(); 
       newBoard = makeMove(selected[0], selected[1], r, c, newBoard);
       setBoard(newBoard);
       let newMoveHistory = moveHistory.slice();
@@ -118,7 +124,7 @@ function App() {
       const newTurn = (turn == "l") ? "d" : "l";
       setTurn(newTurn);
       setMoves(getMoves(newBoard, newTurn, 
-        newMoveHistory[newMoveHistory.length - 1]));
+        newMoveHistory[newMoveHistory.length - 1], newCastleRef));
     }
   }
 
