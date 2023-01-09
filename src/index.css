@@ -1,6 +1,6 @@
-* {
+/* * {
   outline: 1px solid red;
-}
+} */
 
 .flex-container {
   display: flex;
@@ -18,10 +18,11 @@
   height: 12.5%;
 }
 .board-row-tile {
+  outline: 1.5px solid black;
   width: 12.5%;
   height: 100%;
   display: block; /* get rid of white space under div containing img */
-  font-size: 0px; /* get rid of white space under div containing img */
+  /* font-size: 0px; /* get rid of white space under div containing img */
   float: left; /* prevent horizontal stacking of tiles in same row */
 }
 .board-row-tile-img {

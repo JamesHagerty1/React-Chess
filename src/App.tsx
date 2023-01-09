@@ -26,6 +26,7 @@ const Board: FC<BoardProps> = (props) => {
       boardRef.current?.offsetTop : -1);
     setWidth((boardRef.current?.offsetWidth != undefined) ? 
       boardRef.current?.offsetWidth : -1);
+    console.log("top off ", boardRef.current?.offsetTop);
   }
   useEffect(() => {
     onResize(); 
@@ -42,6 +43,8 @@ const Board: FC<BoardProps> = (props) => {
   let promoStyle = (pieceId.endsWith("l")) ? 
     {"top": "0px", "left": ((width / 8) * c2)} : 
     {"bottom": "0px", "left": ((width / 8) * c2)}; 
+
+  // References for
 
   return (
     <div>
@@ -84,6 +87,19 @@ const Board: FC<BoardProps> = (props) => {
             cy={Number(tileId.charAt(0)) * (width / 8) + (width / 16)} 
             r={width / 64} fill="dodgerblue" />
           )}
+          {["8", "7", "6", "5", "4", "3", "2", "1"].map((tileAnn, i) => 
+            <text x="0" y={(width / 50) + i * (width / 8)} 
+            fontSize={width / 50} key={i} fontFamily={"arial"}>
+              {tileAnn}
+            </text>
+          )}
+          {["a", "b", "c", "d", "e", "f", "g", "h"].map((tileAnn, i) =>
+            <text x={(width / 1000) + (width / 8) * i} 
+            y={width - (width / 200)} fontSize={width / 45} 
+            fontFamily={"arial"} key={i}>
+              {tileAnn}
+            </text>
+          )}
         </svg>
       </div>
     </div>
@@ -98,8 +114,8 @@ const Captures: FC<CapturesProps> = (props) => {
   return (
     <div className="captures">
       {props.pieceIds.map((pieceId, i) => 
-        <img className="capture-img" 
-        src={require(`./images/${pieceId}.png`)} key={i}/>
+        <img className="capture-img" src={require(`./images/${pieceId}.png`)} 
+        key={i}/>
       )}
     </div>
   );
