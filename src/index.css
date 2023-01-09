@@ -1,6 +1,6 @@
-/* * {
+* {
   outline: 1px solid red;
-} */
+}
 
 .flex-container {
   display: flex;
@@ -71,4 +71,13 @@
 }
 .capture-img {
   width: 6.25%;
+}
+
+.game-description {
+  width: 50vmin;
+}
+.move-history {
+  height: 80vmin;
+  overflow:hidden; 
+  overflow-y:scroll;
 }

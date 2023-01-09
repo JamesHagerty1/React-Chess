@@ -122,6 +122,33 @@ const Captures: FC<CapturesProps> = (props) => {
 }
 
 
+interface MoveDescriptionProps {
+  move: string;
+}
+const MoveDescription : FC<MoveDescriptionProps> = (props) => {
+  return (
+    <div>{props.move}</div>
+  );
+}
+
+interface GameDescriptionProps {
+  moveHistory: string[];
+  gameStatus: string;
+}
+const GameDescription : FC<GameDescriptionProps> = (props) => {
+  return (
+    <div className="game-description">
+      <p>{props.gameStatus}</p>
+      <div className="move-history">
+        {props.moveHistory.map((move, i) => 
+          <MoveDescription move={move} key={i}/>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 function App() {
   const [board, setBoard] = useState<string[][]>([
     ["rd", "nd", "bd", "qd", "kd", "bd", "nd", "rd"],
@@ -145,7 +172,7 @@ function App() {
   const [dCaptures, setDCaptures] = useState<string[]>([]);
   const [lCaptures, setLCaptures] = useState<string[]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
-  const [status, setStatus] = useState<string>("Ongoing game");
+  const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
   
   function clickTile(r: number, c: number) {
     if (pawnPromo || gameOver()) {
@@ -226,10 +253,10 @@ function App() {
     let check = 
       canCheck(board, turn, moveHistory[moveHistory.length - 1], castleRef);
     if (noMoves && !check) {
-      setStatus("Stalemate!");
+      setGameStatus("Stalemate!");
     }
     if (noMoves && check) {
-      setStatus("Checkmate!");
+      setGameStatus("Checkmate!");
     }
     return noMoves;
   }
@@ -243,10 +270,8 @@ function App() {
         lastMove={moveHistory[moveHistory.length - 1]} clickPromo={clickPromo}/>
         <Captures pieceIds={dCaptures}/>
       </div>
-      <div>
-        {moveHistory.map((move, i) => <div key={i}>{move}</div>)}
-        <p>{status}</p>
-      </div>
+      <GameDescription moveHistory={moveHistory.slice(1, moveHistory.length)} 
+      gameStatus={gameStatus}/>
     </div>
   );
 }
