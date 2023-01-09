@@ -130,12 +130,35 @@ const MoveInfo: FC<MoveInfoProps> = (props) => {
   const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId] = 
     parseMove(props.move);
   const ref = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const castled = pieceId.charAt(0) == "k" && Math.abs(c1 - c2) == 2;
+  console.log("promoId ", promoId);
   return (
     <div>
-      <div>{props.num}</div>
+      <div>playerName</div>
       <div className="move-info">
+        <div>{`(${props.num})`}</div>
         <img src={require(`./images/${pieceId}.png`)}/>
         <div>{`${ref[c1]}${8 - r1} → ${ref[c2]}${8 - r2}`}</div>
+        {captureId != "*d" &&
+          <img src={require(`./images/${captureId}.png`)}/>
+        }
+        {captureId != "*d" &&
+          <div>captured</div>
+        }
+        {promoId != "*l" &&
+          <img src={require(`./images/${promoId}.png`)}/>
+        }
+        {promoId != "*l" &&
+          <div>promoted</div>
+        }
+        {castled &&
+          <img src={require(`./images/r${pieceId.charAt(1)}.png`)}/>
+        }
+        {castled &&
+          <div>
+            {(c1 < c2) ? `${8 - r1}h → ${8 - r1}f` : `${8 - r1}a → ${8 - r1}d`}
+          </div>
+        }
       </div>
     </div>
   );
@@ -222,7 +245,7 @@ function App() {
       setBoard(newBoard);
       let newMoveHistory = moveHistory.slice();
       newMoveHistory.push(
-        `${pieceId},${rSel},${cSel},${r},${c},${captureId},${rCap},${cCap},*d`);
+        `${pieceId},${rSel},${cSel},${r},${c},${captureId},${rCap},${cCap},*l`);
       setMoveHistory(newMoveHistory);
       setCastleRef(updateCastleRef(
         castleRef.slice(), newBoard[r][c].charAt(0), turn, cSel));
