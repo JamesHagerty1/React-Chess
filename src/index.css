@@ -78,6 +78,17 @@
 }
 .move-history {
   height: 80vmin;
-  overflow:hidden; 
-  overflow-y:scroll;
+  overflow: hidden;  /* scrollability */
+  overflow-y: scroll; /* scrollability */ 
 }
+
+.move-info {
+  display: flex;
+  align-content: center;
+  height: 5vmin;
+}
+/* .move-info-num {
+  height: 100%;
+  width: 10px;
+  float: left;
+} */

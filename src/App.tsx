@@ -122,14 +122,25 @@ const Captures: FC<CapturesProps> = (props) => {
 }
 
 
-interface MoveDescriptionProps {
+interface MoveInfoProps {
   move: string;
+  num: number;
 }
-const MoveDescription : FC<MoveDescriptionProps> = (props) => {
+const MoveInfo: FC<MoveInfoProps> = (props) => {
+  const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId] = 
+    parseMove(props.move);
+  const ref = ["a", "b", "c", "d", "e", "f", "g", "h"];
   return (
-    <div>{props.move}</div>
+    <div>
+      <div>{props.num}</div>
+      <div className="move-info">
+        <img src={require(`./images/${pieceId}.png`)}/>
+        <div>{`${ref[c1]}${8 - r1} → ${ref[c2]}${8 - r2}`}</div>
+      </div>
+    </div>
   );
 }
+
 
 interface GameDescriptionProps {
   moveHistory: string[];
@@ -141,7 +152,7 @@ const GameDescription : FC<GameDescriptionProps> = (props) => {
       <p>{props.gameStatus}</p>
       <div className="move-history">
         {props.moveHistory.map((move, i) => 
-          <MoveDescription move={move} key={i}/>
+          <MoveInfo move={move} num={i + 1} key={i}/>
         )}
       </div>
     </div>
