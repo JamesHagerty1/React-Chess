@@ -131,12 +131,11 @@ const MoveInfo: FC<MoveInfoProps> = (props) => {
     parseMove(props.move);
   const ref = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const castled = pieceId.charAt(0) == "k" && Math.abs(c1 - c2) == 2;
-  console.log("promoId ", promoId);
+
   return (
     <div>
-      <div>playerName</div>
+      <div>{`(${props.num}) playerName`}</div>
       <div className="move-info">
-        <div>{`(${props.num})`}</div>
         <img src={require(`./images/${pieceId}.png`)}/>
         <div>{`${ref[c1]}${8 - r1} → ${ref[c2]}${8 - r2}`}</div>
         {captureId != "*d" &&
@@ -149,7 +148,7 @@ const MoveInfo: FC<MoveInfoProps> = (props) => {
           <img src={require(`./images/${promoId}.png`)}/>
         }
         {promoId != "*l" &&
-          <div>promoted</div>
+          <div>promotion</div>
         }
         {castled &&
           <img src={require(`./images/r${pieceId.charAt(1)}.png`)}/>
@@ -170,13 +169,16 @@ interface GameDescriptionProps {
   gameStatus: string;
 }
 const GameDescription : FC<GameDescriptionProps> = (props) => {
+
+  console.log("! new move")
+
   return (
     <div className="game-description">
-      <p>{props.gameStatus}</p>
       <div className="move-history">
         {props.moveHistory.map((move, i) => 
           <MoveInfo move={move} num={i + 1} key={i}/>
         )}
+        <div>{props.gameStatus}</div>
       </div>
     </div>
   );
@@ -208,6 +210,13 @@ function App() {
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
   const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
   
+  function botTurn() {
+    // randomly select a piece (logic and state), sleep 1 second
+    // make a move and end turn
+
+    
+  }
+
   function clickTile(r: number, c: number) {
     if (pawnPromo || gameOver()) {
       return;
@@ -264,6 +273,11 @@ function App() {
       setMoves(getMoves(newBoard, newTurn, 
         newMoveHistory[newMoveHistory.length - 1], newCastleRef));
     }
+  }
+
+  // can be used by player AND bot
+  function moveLogic(r: number, c: number) {
+
   }
 
   function clickPromo(promoId: string, r: number, c: number) {

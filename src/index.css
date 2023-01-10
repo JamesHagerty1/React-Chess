@@ -1,6 +1,6 @@
-* {
+/* * {
   outline: 1px solid red;
-}
+} */
 
 .flex-container {
   display: flex;
@@ -78,7 +78,7 @@
 }
 .move-history {
   height: 80vmin;
-  overflow: hidden;  /* scrollability */
+  overflow: auto;  /* scrollability */
   overflow-y: scroll; /* scrollability */ 
 }
 
