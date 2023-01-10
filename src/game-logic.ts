@@ -318,8 +318,16 @@ export function botMovesReady(board: string[][],
   return board[r][c].endsWith("d");
 }
 
-export function botSelectPiece(moves: {[key: string]: string[]}): 
+function randInt(maxExclusive: number): number {
+  return Math.floor(Math.random() * maxExclusive);
+}
+
+export function botSelect(moves: {[key: string]: string[]}): 
   [number, number] {
   // select random piece that has move options
-  return [-1, -1];
+  const tileIds: string[] = Object.keys(moves);
+  // Pick piece (start tile) randomly, but only one that has valid dests
+  const starts = tileIds.filter((tileId) => {return moves[tileId].length > 0})
+  const tileId = starts[randInt(starts.length)];
+  return [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
 }

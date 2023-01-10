@@ -1,7 +1,7 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
 import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove, 
-  canCheck, botMovesReady, botSelectPiece} from "./game-logic";
+  canCheck, botMovesReady, botSelect} from "./game-logic";
 
 
 interface BoardProps {
@@ -215,7 +215,13 @@ function App() {
       return;
     }
     console.log("bot turn!");
-    const [r, c]: [number, number] = botSelectPiece(moves);
+
+    const [r, c]: [number, number] = botSelect(moves);
+    setSelected([r, c]);
+    setSelectedMoves(moves[`${r}${c}`]);
+
+    
+
   }, [moves])
 
   function clickTile(r: number, c: number) {
