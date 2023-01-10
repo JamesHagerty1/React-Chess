@@ -1,7 +1,7 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
 import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove, 
-  canCheck} from "./game-logic";
+  canCheck, botMovesReady, botSelectPiece} from "./game-logic";
 
 
 interface BoardProps {
@@ -26,7 +26,6 @@ const Board: FC<BoardProps> = (props) => {
       boardRef.current?.offsetTop : -1);
     setWidth((boardRef.current?.offsetWidth != undefined) ? 
       boardRef.current?.offsetWidth : -1);
-    console.log("top off ", boardRef.current?.offsetTop);
   }
   useEffect(() => {
     onResize(); 
@@ -170,8 +169,6 @@ interface GameDescriptionProps {
 }
 const GameDescription : FC<GameDescriptionProps> = (props) => {
 
-  console.log("! new move")
-
   return (
     <div className="game-description">
       <div className="move-history">
@@ -209,16 +206,20 @@ function App() {
   const [lCaptures, setLCaptures] = useState<string[]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
   const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
+  // Toggle me! (turn BOT off while testing)
+  const BOT = true;
   
-  function botTurn() {
-    // randomly select a piece (logic and state), sleep 1 second
-    // make a move and end turn
-
-    
-  }
+  // Ensure bot only makes a move when enabled AND necessary state up to date
+  useEffect(() => {
+    if (!BOT || !botMovesReady(board, moves) || gameOver()) {
+      return;
+    }
+    console.log("bot turn!");
+    const [r, c]: [number, number] = botSelectPiece(moves);
+  }, [moves])
 
   function clickTile(r: number, c: number) {
-    if (pawnPromo || gameOver()) {
+    if ((BOT && turn === "d") || pawnPromo || gameOver()) {
       return;
     }
 

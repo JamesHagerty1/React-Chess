@@ -307,3 +307,19 @@ export function canMove(moves: {[key: string]: string[]}): boolean {
   }
   return false;
 }
+
+/* BOT HELPERS ****************************************************************/
+
+// assert for bot so it knows that new moves are ready (async workaround)
+export function botMovesReady(board: string[][], 
+  moves: {[key: string]: string[]}): boolean {
+  const tileId: string = Object.keys(moves)[0];
+  const [r, c] = [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
+  return board[r][c].endsWith("d");
+}
+
+export function botSelectPiece(moves: {[key: string]: string[]}): 
+  [number, number] {
+  // select random piece that has move options
+  return [-1, -1];
+}
