@@ -225,6 +225,10 @@ function App() {
   // Toggle me! (turn BOT off while testing)
   const BOT = true;
 
+  function sleep(ms: number) {
+    var s = new Date().getTime();
+    while(new Date().getTime() < s + ms){}
+  }
 
   // useEffect [moves] used for BOT player exclusively
   useEffect(() => {
@@ -233,9 +237,15 @@ function App() {
       return;
     }
     const [r1, c1, r2, c2]: [number, number, number, number] = botMove(moves);
-    setSelected([r1, c1]); // annotation sake only
-    setSelectedMoves(moves[`${r1}${c1}`]); // annotation sake only
-    moveMain(r1, c1, r2, c2);
+    function s() {
+      setSelected([r1, c1]); // annotation sake only
+      setSelectedMoves(moves[`${r1}${c1}`]); // annotation sake only
+    }
+    setTimeout(s, 100); // Sleep but ONLY delay these calls
+    function m() {
+      moveMain(r1, c1, r2, c2);
+    }
+    setTimeout(m, 200);
   }, [moves])
 
 
