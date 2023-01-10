@@ -1,7 +1,8 @@
 import React, {FC, useState, useRef, useEffect} from "react";
 import "./index.css";
 import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove, 
-  canCheck, botMovesReady, botSelect} from "./game-logic";
+  canCheck, botMovesReady, botMove, botPromoId} from "./game-logic";
+
 
 
 interface BoardProps {
@@ -32,10 +33,11 @@ const Board: FC<BoardProps> = (props) => {
     window.addEventListener("resize", onResize);
   }, []);
 
-  // Reference for a pawn promotion box
   const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId]:
     [string, number, number, number, number, string, number, number, string] = 
     parseMove(props.lastMove);
+
+  // Reference for a pawn promotion box
   const promos: string[] = 
     (pieceId.endsWith("l")) ? 
     ["ql", "rl", "bl", "nl"] : ["nd", "bd", "rd", "qd"];
@@ -43,7 +45,13 @@ const Board: FC<BoardProps> = (props) => {
     {"top": "0px", "left": ((width / 8) * c2)} : 
     {"bottom": "0px", "left": ((width / 8) * c2)}; 
 
-  // References for
+  // References for move history line
+  const [x1, y1, x2, y2] = [
+    ((width / 16) + c1 * (width / 8)),
+    ((width / 16) + r1 * (width / 8)),
+    ((width / 16) + c2 * (width / 8)),
+    ((width / 16) + r2 * (width / 8)),
+  ];
 
   return (
     <div>
@@ -73,7 +81,11 @@ const Board: FC<BoardProps> = (props) => {
           </div>
         }
         <svg className="svg-container">
-          {props.selected[0] != -1 &&
+          {(pieceId !== "*l") &&
+            <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
+            stroke="dodgerblue" strokeWidth="4" strokeLinecap="round"></line>
+          }
+          {(props.selected[0] != -1) &&
             <circle className="svg-drawing" 
             cx={props.selected[1] * (width / 8) + (width / 16)} 
             cy={props.selected[0] * (width / 8) + (width / 16)} 
@@ -106,6 +118,7 @@ const Board: FC<BoardProps> = (props) => {
 }
 
 
+
 interface CapturesProps {
   pieceIds: string[];
 }
@@ -119,6 +132,7 @@ const Captures: FC<CapturesProps> = (props) => {
     </div>
   );
 }
+
 
 
 interface MoveInfoProps {
@@ -163,6 +177,7 @@ const MoveInfo: FC<MoveInfoProps> = (props) => {
 }
 
 
+
 interface GameDescriptionProps {
   moveHistory: string[];
   gameStatus: string;
@@ -180,6 +195,7 @@ const GameDescription : FC<GameDescriptionProps> = (props) => {
     </div>
   );
 }
+
 
 
 function App() {
@@ -208,84 +224,85 @@ function App() {
   const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
   // Toggle me! (turn BOT off while testing)
   const BOT = true;
-  
-  // Ensure bot only makes a move when enabled AND necessary state up to date
+
+
+  // useEffect [moves] used for BOT player exclusively
   useEffect(() => {
+    // Ensure bot only makes a move when enabled AND necessary state up to date
     if (!BOT || !botMovesReady(board, moves) || gameOver()) {
       return;
     }
-    console.log("bot turn!");
-
-    const [r, c]: [number, number] = botSelect(moves);
-    setSelected([r, c]);
-    setSelectedMoves(moves[`${r}${c}`]);
-
-    
-
+    const [r1, c1, r2, c2]: [number, number, number, number] = botMove(moves);
+    setSelected([r1, c1]); // annotation sake only
+    setSelectedMoves(moves[`${r1}${c1}`]); // annotation sake only
+    moveMain(r1, c1, r2, c2);
   }, [moves])
+
 
   function clickTile(r: number, c: number) {
     if ((BOT && turn === "d") || pawnPromo || gameOver()) {
       return;
     }
-
     // Select a piece
     if (board[r][c].endsWith(turn)) { 
       setSelected([r, c]);
       setSelectedMoves(moves[`${r}${c}`]);
-
     // Make a move
     } else if (selectedMoves.includes(`${r}${c}`)) { 
       const [rSel, cSel] = [selected[0], selected[1]];
-      const pieceId = board[rSel][cSel];
-      let captureId = "*d";
-      let newBoard: string[][] = board.slice();
-      const [rCap, cCap]: [number, number] = 
-        getCapture(rSel, cSel, r, c, board, turn);
-      // capture
-      if (rCap != -1) {
-        let captures = (turn == "l") ? dCaptures.slice() : lCaptures.slice();
-        captures.push(board[rCap][cCap]);
-        captureId = board[rCap][cCap]
-        let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
-        newBoard[rCap][cCap] = "_";
-      }       
-      newBoard = makeMove(rSel, cSel, r, c, newBoard);
-      const newCastleRef = castleRef.slice();
-      // move rook when king castles
-      if (newBoard[r][c].charAt(0) == "k" && Math.abs(c - cSel) == 2) { 
-        const [c1Rook, c2Rook] = (c < cSel) ? [0, 3] : [7, 5];
-        newBoard[r][c2Rook] = newBoard[r][c1Rook];
-        newBoard[r][c1Rook] = "_";
-      }
-      setBoard(newBoard);
-      let newMoveHistory = moveHistory.slice();
-      newMoveHistory.push(
-        `${pieceId},${rSel},${cSel},${r},${c},${captureId},${rCap},${cCap},*l`);
-      setMoveHistory(newMoveHistory);
-      setCastleRef(updateCastleRef(
-        castleRef.slice(), newBoard[r][c].charAt(0), turn, cSel));
-      setSelected([-1, -1]);
-      setSelectedMoves([]);
-      
-      // Lock piece selection and moves for pawn promotion
-      const reachedEnd = (turn == "l") ? (r == 0) : (r == 7); 
-      if (newBoard[r][c].charAt(0) == "p" && reachedEnd) {
-        setPawnPromo(true);
-        return;
-      }
-      // OR transition to next turn
-      const newTurn = (turn == "l") ? "d" : "l";
-      setTurn(newTurn);
-      setMoves(getMoves(newBoard, newTurn, 
-        newMoveHistory[newMoveHistory.length - 1], newCastleRef));
+      moveMain(rSel, cSel, r, c);
     }
   }
 
-  // can be used by player AND bot
-  function moveLogic(r: number, c: number) {
 
+  // can be used by player AND bot
+  function moveMain(r1: number, c1: number, r2: number, c2: number){ 
+    const pieceId = board[r1][c1];
+    let newBoard: string[][] = board.slice();
+    const [rCap, cCap]: [number, number] = 
+      getCapture(r1, c1, r2, c2, board, turn);
+    // capture
+    let captureId = "*d";
+    if (rCap != -1) {
+      let captures = (turn == "l") ? dCaptures.slice() : lCaptures.slice();
+      captures.push(board[rCap][cCap]);
+      captureId = board[rCap][cCap]
+      let _ = (turn == "l") ? setDCaptures(captures) : setLCaptures(captures);
+      newBoard[rCap][cCap] = "_";
+    }       
+    newBoard = makeMove(r1, c1, r2, c2, newBoard);
+    const newCastleRef = castleRef.slice();
+    // move rook when king castles
+    if (newBoard[r2][c2].charAt(0) == "k" && Math.abs(c2 - c1) == 2) { 
+      const [c1Rook, c2Rook] = (c2 < c1) ? [0, 3] : [7, 5];
+      newBoard[r2][c2Rook] = newBoard[r2][c1Rook];
+      newBoard[r2][c1Rook] = "_";
+    }
+    setBoard(newBoard);
+    let newMoveHistory = moveHistory.slice();
+    newMoveHistory.push(
+      `${pieceId},${r1},${c1},${r2},${c2},${captureId},${rCap},${cCap},*l`);
+    setMoveHistory(newMoveHistory);
+    setCastleRef(updateCastleRef(
+      castleRef.slice(), newBoard[r2][c2].charAt(0), turn, c1));
+    setSelected([-1, -1]);
+    setSelectedMoves([]);
+    // Lock piece selection and moves for pawn promotion OR change turn
+    // (though bot can complete pawn promotion here)
+    const reachedEnd = (turn == "l") ? (r2 == 0) : (r2 == 7); 
+    if (newBoard[r2][c2].charAt(0) == "p" && reachedEnd) {
+      setPawnPromo(true) // Lock player from clickTile until pawn promotion
+      if (BOT && turn == "d") {
+        clickPromo(botPromoId(), r2, c2); // Bot pawn promotion
+      }
+      return;
+    }
+    const newTurn = (turn == "l") ? "d" : "l";
+    setTurn(newTurn);
+    setMoves(getMoves(newBoard, newTurn, 
+      newMoveHistory[newMoveHistory.length - 1], newCastleRef));
   }
+
 
   function clickPromo(promoId: string, r: number, c: number) {
     let newBoard = board.slice();
@@ -303,6 +320,7 @@ function App() {
     setMoves(getMoves(newBoard, newTurn, lastMove, castleRef));
   }
 
+
   function gameOver(): boolean {
     let noMoves = !canMove(moves);
     let check = 
@@ -315,6 +333,7 @@ function App() {
     }
     return noMoves;
   }
+
 
   return (
     <div className="flex-container">

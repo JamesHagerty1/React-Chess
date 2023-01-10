@@ -310,6 +310,7 @@ export function canMove(moves: {[key: string]: string[]}): boolean {
 
 /* BOT HELPERS ****************************************************************/
 
+
 // assert for bot so it knows that new moves are ready (async workaround)
 export function botMovesReady(board: string[][], 
   moves: {[key: string]: string[]}): boolean {
@@ -318,16 +319,27 @@ export function botMovesReady(board: string[][],
   return board[r][c].endsWith("d");
 }
 
+
 function randInt(maxExclusive: number): number {
   return Math.floor(Math.random() * maxExclusive);
 }
 
-export function botSelect(moves: {[key: string]: string[]}): 
-  [number, number] {
+
+export function botMove(moves: {[key: string]: string[]}): 
+  [number, number, number, number] {
   // select random piece that has move options
   const tileIds: string[] = Object.keys(moves);
   // Pick piece (start tile) randomly, but only one that has valid dests
   const starts = tileIds.filter((tileId) => {return moves[tileId].length > 0})
   const tileId = starts[randInt(starts.length)];
-  return [Number(tileId.charAt(0)), Number(tileId.charAt(1))];
+  const [r1, c1] = [Number(tileId.charAt(0)), Number(tileId.charAt(1))]
+  // Pick dest tile randomly
+  const dest = moves[tileId][randInt(moves[tileId].length)];
+  const [r2, c2] = [Number(dest.charAt(0)), Number(dest.charAt(1))]
+  return [r1, c1, r2, c2];
+}
+
+
+export function botPromoId() {
+  return ["qd", "rd", "bd", "nd"][randInt(4)];
 }
