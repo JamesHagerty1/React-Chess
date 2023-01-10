@@ -4,7 +4,6 @@ import {getMoves, makeMove, getCapture, updateCastleRef, parseMove, canMove,
   canCheck, botMovesReady, botMove, botPromoId} from "./game-logic";
 
 
-
 interface BoardProps {
   board: string[][];
   selected: [number, number];
@@ -83,7 +82,7 @@ const Board: FC<BoardProps> = (props) => {
         <svg className="svg-container">
           {(pieceId !== "*l") &&
             <line className="svg-drawing" x1={x1} y1={y1} x2={x2} y2={y2} 
-            stroke="dodgerblue" strokeWidth="4" strokeLinecap="round"></line>
+            stroke="plum" strokeWidth="4" strokeLinecap="round"></line>
           }
           {(props.selected[0] != -1) &&
             <circle className="svg-drawing" 
@@ -222,6 +221,8 @@ function App() {
   const [lCaptures, setLCaptures] = useState<string[]>([]);
   const [pawnPromo, setPawnPromo] = useState<boolean>(false);
   const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
+  // sound effect
+  const audio0 = new Audio(require("./audio/place-piece.mp3"));
   // Toggle me! (turn BOT off while testing)
   const BOT = true;
 
@@ -237,15 +238,14 @@ function App() {
       return;
     }
     const [r1, c1, r2, c2]: [number, number, number, number] = botMove(moves);
-    function s() {
+    // Bot sleeps before selecting and moving
+    setTimeout(() => {
       setSelected([r1, c1]); // annotation sake only
       setSelectedMoves(moves[`${r1}${c1}`]); // annotation sake only
-    }
-    setTimeout(s, 100); // Sleep but ONLY delay these calls
-    function m() {
+    }, 200);
+    setTimeout(() => {
       moveMain(r1, c1, r2, c2);
-    }
-    setTimeout(m, 200);
+    }, 600);
   }, [moves])
 
 
@@ -267,6 +267,7 @@ function App() {
 
   // can be used by player AND bot
   function moveMain(r1: number, c1: number, r2: number, c2: number){ 
+    setSelected([-1, -1]);
     const pieceId = board[r1][c1];
     let newBoard: string[][] = board.slice();
     const [rCap, cCap]: [number, number] = 
@@ -295,8 +296,9 @@ function App() {
     setMoveHistory(newMoveHistory);
     setCastleRef(updateCastleRef(
       castleRef.slice(), newBoard[r2][c2].charAt(0), turn, c1));
-    setSelected([-1, -1]);
     setSelectedMoves([]);
+    audio0.play();
+
     // Lock piece selection and moves for pawn promotion OR change turn
     // (though bot can complete pawn promotion here)
     const reachedEnd = (turn == "l") ? (r2 == 0) : (r2 == 7); 
