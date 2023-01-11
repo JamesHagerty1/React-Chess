@@ -19,6 +19,7 @@ const Board: FC<BoardProps> = (props) => {
   const [topOffset, setTopOffset] = useState<number>(-1);
   const [width, setWidth] = useState<number>(-1);
   const boardRef = useRef<HTMLDivElement>(null);
+
   const onResize = () => {
     setLeftOffset((boardRef.current?.offsetLeft != undefined) ? 
       boardRef.current?.offsetLeft : -1);
@@ -27,11 +28,13 @@ const Board: FC<BoardProps> = (props) => {
     setWidth((boardRef.current?.offsetWidth != undefined) ? 
       boardRef.current?.offsetWidth : -1);
   }
+
   useEffect(() => {
     onResize(); 
     window.addEventListener("resize", onResize);
   }, []);
 
+  // General references
   const [pieceId, r1, c1, r2, c2, captureId, rCap, cCap, promoId]:
     [string, number, number, number, number, string, number, number, string] = 
     parseMove(props.lastMove);
@@ -143,32 +146,33 @@ const MoveInfo: FC<MoveInfoProps> = (props) => {
     parseMove(props.move);
   const ref = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const castled = pieceId.charAt(0) == "k" && Math.abs(c1 - c2) == 2;
+  const moveInfoStyle = pieceId.endsWith("l") ? 
+    {"backgroundColor": "whitesmoke"} : {"backgroundColor": "white"};
 
   return (
-    <div>
-      <div>{`(${props.num}) playerName`}</div>
+    <div style={moveInfoStyle}>
       <div className="move-info">
         <img src={require(`./images/${pieceId}.png`)}/>
-        <div>{`${ref[c1]}${8 - r1} → ${ref[c2]}${8 - r2}`}</div>
+        <p>{`${ref[c1]}${8 - r1} → ${ref[c2]}${8 - r2}`}</p>
         {captureId != "*d" &&
           <img src={require(`./images/${captureId}.png`)}/>
         }
         {captureId != "*d" &&
-          <div>captured</div>
+          <p>captured</p>
         }
         {promoId != "*l" &&
           <img src={require(`./images/${promoId}.png`)}/>
         }
         {promoId != "*l" &&
-          <div>promotion</div>
+          <p>promotion</p>
         }
         {castled &&
           <img src={require(`./images/r${pieceId.charAt(1)}.png`)}/>
         }
         {castled &&
-          <div>
+          <p>
             {(c1 < c2) ? `${8 - r1}h → ${8 - r1}f` : `${8 - r1}a → ${8 - r1}d`}
-          </div>
+          </p>
         }
       </div>
     </div>
@@ -182,14 +186,20 @@ interface GameDescriptionProps {
   gameStatus: string;
 }
 const GameDescription : FC<GameDescriptionProps> = (props) => {
+  const moveHistoryRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom as move history updates
+  useEffect(() => {
+    moveHistoryRef.current?.scrollTo(0, moveHistoryRef.current?.scrollHeight);
+  })
 
   return (
     <div className="game-description">
-      <div className="move-history">
+      <div className="move-history" ref={moveHistoryRef}>
         {props.moveHistory.map((move, i) => 
           <MoveInfo move={move} num={i + 1} key={i}/>
         )}
-        <div>{props.gameStatus}</div>
+        <p className="move-history-status">{props.gameStatus}</p>
       </div>
     </div>
   );
@@ -223,7 +233,7 @@ function App() {
   const [gameStatus, setGameStatus] = useState<string>("Ongoing game");
   // sound effect
   const audio0 = new Audio(require("./audio/place-piece.mp3"));
-  // Toggle me! (turn BOT off while testing)
+  // Toggle me! (turn BOT false while testing)
   const BOT = true;
 
   function sleep(ms: number) {
@@ -238,7 +248,7 @@ function App() {
       return;
     }
     const [r1, c1, r2, c2]: [number, number, number, number] = botMove(moves);
-    // Bot sleeps before selecting and moving
+    // Bot sleeps before selecting and moving to make it feel like a player
     setTimeout(() => {
       setSelected([r1, c1]); // annotation sake only
       setSelectedMoves(moves[`${r1}${c1}`]); // annotation sake only

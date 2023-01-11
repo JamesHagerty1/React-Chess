@@ -70,25 +70,33 @@
   height: 8vmin;
 }
 .capture-img {
-  width: 6.65%;
+  width: 6.7%;
 }
 
 .game-description {
+  padding-top: 8vmin;
   width: 50vmin;
+  padding-left: 2.5px;
 }
 .move-history {
+  outline: 1px solid black;
   height: 80vmin;
   overflow: auto;  /* scrollability */
   overflow-y: scroll; /* scrollability */ 
 }
-
+.move-history-status {
+  font: bold 1.2vw sans-serif;
+  text-align: center;
+  color: dodgerblue;
+}
 .move-info {
-  display: flex;
-  align-content: center;
+  display: flex; /* shrinks down images */
+  align-items: center;
+  height: 6vmin;
+}
+.move-info img {
   height: 5vmin;
 }
-/* .move-info-num {
-  height: 100%;
-  width: 10px;
-  float: left;
-} */
+.move-info p {
+  font: 1.1vw sans-serif;
+}
