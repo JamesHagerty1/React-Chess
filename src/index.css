@@ -76,10 +76,9 @@
 .game-description {
   padding-top: 8vmin;
   width: 50vmin;
-  padding-left: 2.5px;
+  padding-left: 3px;
 }
 .move-history {
-  outline: 1px solid black;
   height: 80vmin;
   overflow: auto;  /* scrollability */
   overflow-y: scroll; /* scrollability */ 
