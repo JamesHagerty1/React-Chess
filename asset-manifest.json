@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/React-Chess/static/css/main.ec27b73f.css",
+    "main.js": "/React-Chess/static/js/main.9c30a668.js",
+    "static/media/place-piece.mp3": "/React-Chess/static/media/place-piece.b2161b16bcee9e29a861.mp3",
+    "index.html": "/React-Chess/index.html",
+    "main.ec27b73f.css.map": "/React-Chess/static/css/main.ec27b73f.css.map",
+    "main.9c30a668.js.map": "/React-Chess/static/js/main.9c30a668.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ec27b73f.css",
+    "static/js/main.9c30a668.js"
+  ]
+}
